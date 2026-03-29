@@ -23,7 +23,9 @@ public actor RenameEngine {
 
     // MARK: - Public
 
-    public func process(newFile url: URL) async {
+    /// - Parameter detectedAt: timestamp from the FSEvents callback — use this for
+    ///   context matching instead of `Date()`, which can be seconds later due to Task scheduling.
+    public func process(newFile url: URL, detectedAt: Date) async {
         let path = url.path
 
         // Debounce: skip if we processed this path in the last 3 seconds
@@ -31,10 +33,9 @@ public actor RenameEngine {
         guard recentlyProcessed[path] == nil else { return }
         recentlyProcessed[path] = Date()
 
-        // Match context NOW — before sleeping — so the 5 s match window isn't
-        // eaten up by our write-settle delay. store.nearest() is synchronous (lock-based).
-        let eventTime = Date()
-        let context   = store.nearest(to: eventTime) ?? .empty
+        // Match context using the watcher's detection time — much closer to the keystroke
+        // than Date() here, which can be delayed by several seconds of Task scheduling.
+        let context = store.nearest(to: detectedAt) ?? .empty
 
         // Give macOS time to finish writing before we read the file
         try? await Task.sleep(nanoseconds: 500_000_000)   // 0.5 s

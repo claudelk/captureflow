@@ -8,9 +8,12 @@ public final class ScreenshotWatcher {
 
     private var stream: FSEventStreamRef?
     private let folderURL: URL
-    private let onNewFile: (URL) -> Void
+    private let onNewFile: (URL, Date) -> Void
 
-    public init(folderURL: URL, onNewFile: @escaping (URL) -> Void) {
+    /// - Parameter onNewFile: Called with (fileURL, detectionTime) when a new PNG appears.
+    ///   `detectionTime` is captured in the FSEvents callback — much closer to the actual
+    ///   keystroke than when the downstream Task eventually runs.
+    public init(folderURL: URL, onNewFile: @escaping (URL, Date) -> Void) {
         self.folderURL = folderURL.standardizedFileURL
         self.onNewFile = onNewFile
     }
@@ -65,8 +68,9 @@ public final class ScreenshotWatcher {
                     let parent = url.deletingLastPathComponent().standardizedFileURL
                     guard parent == watcher.folderURL else { continue }
 
+                    let detectedAt = Date()
                     print("[ScreenshotWatcher] new screenshot detected: \(fileName)")
-                    watcher.onNewFile(url)
+                    watcher.onNewFile(url, detectedAt)
                 }
             },
             &ctx,

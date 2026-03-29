@@ -38,8 +38,8 @@ struct SmartScreenShotDaemon {
         let engine = RenameEngine(namer: namer, store: store)
 
         // FSEvents watcher — fires when a new PNG lands in the screenshot folder
-        let watcher = ScreenshotWatcher(folderURL: screenshotFolder) { url in
-            Task { await engine.process(newFile: url) }
+        let watcher = ScreenshotWatcher(folderURL: screenshotFolder) { url, detectedAt in
+            Task { await engine.process(newFile: url, detectedAt: detectedAt) }
         }
         watcher.start()
 
