@@ -17,7 +17,7 @@ struct LaunchAtLogin {
     func install() {
         let executablePath = Bundle.main.executablePath
             ?? ProcessInfo.processInfo.arguments.first
-            ?? "/usr/local/bin/SmartScreenShot"
+            ?? "/Applications/SmartScreenShot.app/Contents/MacOS/SmartScreenShot"
 
         let plist: [String: Any] = [
             "Label": label,

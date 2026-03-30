@@ -126,13 +126,43 @@ sst --rename ~/Desktop/Screenshot*.png
 
 ---
 
-## Step 5 — Code signing & distribution (planned)
+## Step 5 — Code signing & distribution ✅ (2026-03-29)
 
-- **Apple Developer Program** ($99/year at developer.apple.com)
-- **Developer ID certificate** — sign binary so macOS recognizes the developer
-- **Notarization** — submit signed app to Apple; removes "unidentified developer" warning
-- Wrap SPM binary in a `.app` bundle with Info.plist + icon
-- **Distribution**: Developer ID + Notarization (outside App Store) — recommended for menu bar utilities that need Accessibility permission (App Store requires App Sandbox, which conflicts with CGEventTap)
+**Goal:** wrap SPM binary in a proper `.app` bundle, code sign with Developer ID, notarize, and package as DMG.
+
+### Implemented
+- `Distribution/Info.plist` — app bundle metadata (CFBundleIdentifier `com.smartscreenshot.app`, LSUIElement, macOS 13+ minimum)
+- `Distribution/SmartScreenShot.entitlements` — production entitlements (`automation.apple-events` only, no sandbox, no get-task-allow)
+- `Distribution/generate-icon.sh` — converts 1024x1024 PNG to `.icns` via `sips` + `iconutil`
+- `scripts/build-and-sign.sh` — full pipeline: release build → .app bundle → codesign → DMG → notarize → staple
+- `docs/code-signing.md` — prerequisites, identity setup, build commands, entitlements rationale
+- Updated `LaunchAtLogin.swift` fallback path to `/Applications/SmartScreenShot.app/Contents/MacOS/SmartScreenShot`
+
+### Design decisions
+- **Developer ID + Notarization** (not Mac App Store) — App Sandbox conflicts with CGEventTap/Accessibility
+- **Hardened Runtime** via `--options runtime` — required for notarization
+- **No `get-task-allow`** in production entitlements — debug-only, would fail notarization
+- **PlistBuddy version injection** — single source of truth for version at build time
+- **DMG with /Applications symlink** — standard drag-to-install UX
+- **SPM-only** (no Xcode project) — shell script handles bundling
+
+### Prerequisites
+1. **Developer ID Application** certificate (create at developer.apple.com > Certificates)
+2. App-specific password for notarization (appleid.apple.com > Security)
+
+### Build & distribute
+```bash
+# Local testing (skip notarization)
+SKIP_NOTARIZE=1 DEVELOPER_ID="Developer ID Application: ..." ./scripts/build-and-sign.sh
+
+# Full distribution build
+export DEVELOPER_ID="Developer ID Application: Name (TEAMID)"
+export APPLE_ID="you@example.com"
+export TEAM_ID="TEAMID"
+export APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+./scripts/build-and-sign.sh
+# Output: .build/dist/SmartScreenShot-1.0.0.dmg
+```
 
 ---
 
@@ -152,6 +182,15 @@ sst --rename ~/Desktop/Screenshot*.png
 - Requires Apple Silicon (M1+), macOS 13+
 - Opt-in via Preferences — model download prompt on first enable
 - Best naming quality: understands image content directly, not just OCR text
+
+---
+
+## Step 8 — Trial / paid licensing (planned)
+
+- **Trial mode** — free tier with daily screenshot limit (e.g. 5/day)
+- **Paid version** — one-time purchase ($4.99 lifetime), unlocks unlimited renames
+- Local-only license validation (no server, no accounts) — details TBD
+- Gated at rename time — trial users see a prompt after exceeding daily limit
 
 ---
 

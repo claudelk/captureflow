@@ -15,6 +15,8 @@ instead of macOS's default "Screenshot 2026-03-29 at 1.19.49 PM" format.
 | `CLAUDE.md` | This file — canonical project structure |
 | `docs/` | Per-feature design docs (one .md per major component) |
 | `Sources/` | All Swift source code |
+| `Distribution/` | Info.plist, entitlements, icon generation for .app bundle |
+| `scripts/` | Build, sign, notarize, and package scripts |
 
 ---
 
@@ -70,6 +72,7 @@ instead of macOS's default "Screenshot 2026-03-29 at 1.19.49 PM" format.
 | `vision-only-namer.md` | Tier 1 design, slug algorithm, tier roadmap |
 | `daemon.md` | Step 2 daemon design: event flow, timing strategy, folder structure |
 | `menu-bar-app.md` | Step 3 menu bar app: NSStatusItem, preferences, launch at login |
+| `code-signing.md` | Step 5 code signing, notarization, DMG distribution |
 
 ---
 

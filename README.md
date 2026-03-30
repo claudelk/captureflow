@@ -78,12 +78,33 @@ Menu options: Enable/Disable, Re-analyze Last Screenshot, Batch Rename Screensho
 
 ---
 
+## Distribution
+
+Build a signed, notarized `.dmg` for distribution:
+
+```bash
+# Local testing (skip notarization)
+SKIP_NOTARIZE=1 DEVELOPER_ID="Developer ID Application: ..." ./scripts/build-and-sign.sh
+
+# Full distribution build
+export DEVELOPER_ID="Developer ID Application: Name (TEAMID)"
+export APPLE_ID="you@example.com"
+export TEAM_ID="TEAMID"
+export APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"
+./scripts/build-and-sign.sh
+```
+
+See [docs/code-signing.md](docs/code-signing.md) for prerequisites and setup.
+
+---
+
 ## Roadmap
 
 - **Step 1** ✅ CLI naming brain (`sst`) — Vision OCR + scene classification
 - **Step 2** ✅ Background daemon (`ssd`) — CGEventTap + FSEvents + RenameEngine
 - **Step 3** ✅ Menu bar app (`SmartScreenShot`) — NSStatusItem + preferences + launch at login
 - **Step 4** ✅ Batch rename (menu bar + CLI) + global hotkey
-- **Step 5** Code signing & notarization (Developer ID)
+- **Step 5** ✅ Code signing & notarization (Developer ID + DMG)
 - **Step 6** Enhanced naming — `FoundationModelsNamer` (macOS 26+, Apple Intelligence)
 - **Step 7** Advanced naming — `FastVLMNamer` (Apple Silicon, on-device VLM via MLX)
+- **Step 8** Trial / paid licensing (5/day free, $4.99 lifetime unlock)
