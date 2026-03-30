@@ -101,6 +101,16 @@ swift build
 
 ---
 
+## Step 5 — Code signing & distribution (planned)
+
+- **Apple Developer Program** ($99/year at developer.apple.com)
+- **Developer ID certificate** — sign binary so macOS recognizes the developer
+- **Notarization** — submit signed app to Apple; removes "unidentified developer" warning
+- Wrap SPM binary in a `.app` bundle with Info.plist + icon
+- **Distribution**: Developer ID + Notarization (outside App Store) — recommended for menu bar utilities that need Accessibility permission (App Store requires App Sandbox, which conflicts with CGEventTap)
+
+---
+
 ## Known gaps / future work
 
 - `FoundationModelsNamer` (Tier 2) — awaiting macOS 26 SDK

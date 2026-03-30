@@ -122,7 +122,13 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func openPreferences(_ sender: NSMenuItem) {
         if preferencesWindow == nil {
-            preferencesWindow = PreferencesWindow(preferencesStore: preferencesStore)
+            let pw = PreferencesWindow(preferencesStore: preferencesStore)
+            pw.onFolderChanged = { [weak self] in
+                guard let self, self.pipeline.state == .running else { return }
+                self.pipeline.stop()
+                self.pipeline.start()
+            }
+            preferencesWindow = pw
         }
         preferencesWindow?.showWindow()
     }

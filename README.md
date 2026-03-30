@@ -80,3 +80,4 @@ Menu options: Enable/Disable, Re-analyze Last Screenshot, Open Screenshot Folder
 - **Step 2** ✅ Background daemon (`ssd`) — CGEventTap + FSEvents + RenameEngine
 - **Step 3** ✅ Menu bar app (`SmartScreenShot`) — NSStatusItem + preferences + launch at login
 - **Step 4** Finder Quick Action + global hotkey
+- **Step 5** Code signing & notarization (Developer ID)

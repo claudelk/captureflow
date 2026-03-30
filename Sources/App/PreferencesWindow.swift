@@ -7,6 +7,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let preferencesStore: PreferencesStore
     private let launchAgent = LaunchAtLogin()
+    private var folderLabel: NSTextField?
+    /// Called when the screenshot folder changes so the pipeline can restart.
+    var onFolderChanged: (() -> Void)?
 
     init(preferencesStore: PreferencesStore) {
         self.preferencesStore = preferencesStore
@@ -21,7 +24,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         }
 
         let w = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 280),
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 320),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -34,19 +37,46 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         let content = NSView(frame: w.contentView!.bounds)
         content.autoresizingMask = [.width, .height]
 
-        var y: CGFloat = 235
+        var y: CGFloat = 275
 
-        // --- Naming Engine ---
-        content.addSubview(makeLabel("Naming Engine:", at: y))
+        // --- Screenshot Folder ---
+        content.addSubview(makeLabel("Save screenshots to:", at: y))
+
+        let folderPath = NSTextField(labelWithString: preferencesStore.screenshotFolder.path)
+        folderPath.frame = NSRect(x: 160, y: y, width: 200, height: 20)
+        folderPath.font = .systemFont(ofSize: 11)
+        folderPath.textColor = .secondaryLabelColor
+        folderPath.lineBreakMode = .byTruncatingMiddle
+        self.folderLabel = folderPath
+        content.addSubview(folderPath)
+
+        let chooseButton = NSButton(title: "Choose\u{2026}", target: self, action: #selector(chooseFolder(_:)))
+        chooseButton.bezelStyle = .rounded
+        chooseButton.frame = NSRect(x: 365, y: y - 4, width: 75, height: 28)
+        content.addSubview(chooseButton)
+
+        // Reset button — only shown when a custom folder is set
+        let resetButton = NSButton(title: "Reset", target: self, action: #selector(resetFolder(_:)))
+        resetButton.bezelStyle = .rounded
+        resetButton.frame = NSRect(x: 365, y: y - 30, width: 75, height: 24)
+        resetButton.font = .systemFont(ofSize: 11)
+        resetButton.isHidden = preferencesStore.screenshotFolderOverride == nil
+        resetButton.tag = 200
+        content.addSubview(resetButton)
+
+        y -= 65
+
+        // --- Naming Mode ---
+        content.addSubview(makeLabel("Naming Mode:", at: y))
 
         let tierPopup = NSPopUpButton(frame: NSRect(x: 160, y: y - 2, width: 230, height: 26), pullsDown: false)
-        tierPopup.addItems(withTitles: ["Vision OCR + Classification (Tier 1)"])
+        tierPopup.addItems(withTitles: ["Standard"])
 
-        let tier2 = NSMenuItem(title: "Foundation Models (Tier 2) \u{2014} Coming Soon", action: nil, keyEquivalent: "")
+        let tier2 = NSMenuItem(title: "Enhanced (Apple Intelligence) \u{2014} Coming Soon", action: nil, keyEquivalent: "")
         tier2.isEnabled = false
         tierPopup.menu?.addItem(tier2)
 
-        let tier3 = NSMenuItem(title: "FastVLM (Tier 3) \u{2014} Coming Soon", action: nil, keyEquivalent: "")
+        let tier3 = NSMenuItem(title: "Advanced (On-device AI) \u{2014} Coming Soon", action: nil, keyEquivalent: "")
         tier3.isEnabled = false
         tierPopup.menu?.addItem(tier3)
 
@@ -96,20 +126,6 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         hotkeyNote.frame.size.width = 180
         content.addSubview(hotkeyNote)
 
-        y -= 50
-
-        // --- Screenshot folder (read-only) ---
-        content.addSubview(makeLabel("Screenshot folder:", at: y))
-
-        let folderPath = makeLabel(
-            ScreenshotPreferences.folder.path,
-            at: y, size: 11, color: .secondaryLabelColor
-        )
-        folderPath.frame.origin.x = 160
-        folderPath.frame.size.width = 240
-        folderPath.lineBreakMode = .byTruncatingMiddle
-        content.addSubview(folderPath)
-
         w.contentView = content
         w.makeKeyAndOrderFront(nil)
         activateApp()
@@ -117,6 +133,36 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
     }
 
     // MARK: - Actions
+
+    @objc private func chooseFolder(_ sender: NSButton) {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Select"
+        panel.message = "Choose where screenshots will be saved and organized"
+        panel.directoryURL = preferencesStore.screenshotFolder
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        preferencesStore.screenshotFolderOverride = url.path
+        folderLabel?.stringValue = url.path
+
+        // Show the Reset button
+        if let resetButton = window?.contentView?.viewWithTag(200) as? NSButton {
+            resetButton.isHidden = false
+        }
+
+        onFolderChanged?()
+    }
+
+    @objc private func resetFolder(_ sender: NSButton) {
+        preferencesStore.screenshotFolderOverride = nil
+        folderLabel?.stringValue = preferencesStore.screenshotFolder.path
+        sender.isHidden = true
+        onFolderChanged?()
+    }
 
     @objc private func launchAtLoginToggled(_ sender: NSButton) {
         let enabled = sender.state == .on

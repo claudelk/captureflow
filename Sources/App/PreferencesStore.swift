@@ -1,4 +1,5 @@
 import Foundation
+import SmartScreenShotCore
 
 /// Persists user preferences via UserDefaults.
 final class PreferencesStore {
@@ -26,6 +27,7 @@ final class PreferencesStore {
         static let namerTier = "namerTier"
         static let launchAtLogin = "launchAtLogin"
         static let browserCaptureEnabled = "browserCaptureEnabled"
+        static let screenshotFolderOverride = "screenshotFolderOverride"
     }
 
     // MARK: - Properties
@@ -48,5 +50,19 @@ final class PreferencesStore {
     var browserCaptureEnabled: Bool {
         get { defaults.bool(forKey: Keys.browserCaptureEnabled) }
         set { defaults.set(newValue, forKey: Keys.browserCaptureEnabled) }
+    }
+
+    /// Custom screenshot folder override. When nil, falls back to macOS system preference.
+    var screenshotFolderOverride: String? {
+        get { defaults.string(forKey: Keys.screenshotFolderOverride) }
+        set { defaults.set(newValue, forKey: Keys.screenshotFolderOverride) }
+    }
+
+    /// Resolved screenshot folder: custom override > macOS system pref > ~/Desktop.
+    var screenshotFolder: URL {
+        if let override = screenshotFolderOverride, !override.isEmpty {
+            return URL(fileURLWithPath: (override as NSString).expandingTildeInPath)
+        }
+        return ScreenshotPreferences.folder
     }
 }

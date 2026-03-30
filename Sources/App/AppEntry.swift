@@ -34,7 +34,7 @@ struct SmartScreenShotApp {
 
         // Build components
         let prefsStore = PreferencesStore()
-        let pipeline = PipelineController()
+        let pipeline = PipelineController(preferencesStore: prefsStore)
         let statusBar = StatusBarController(pipeline: pipeline, preferencesStore: prefsStore)
 
         // Start the pipeline if enabled (default: true on first launch)

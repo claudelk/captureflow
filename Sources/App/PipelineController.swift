@@ -13,6 +13,7 @@ final class PipelineController {
     private let store: CaptureContextStore
     private let namer: VisionOnlyNamer
     private let engine: RenameEngine
+    private let preferencesStore: PreferencesStore
     private var watcher: ScreenshotWatcher?
     private var tap: KeystrokeTap?
 
@@ -21,7 +22,8 @@ final class PipelineController {
     /// Destination path after the most recent rename.
     private(set) var lastDestinationURL: URL?
 
-    init() {
+    init(preferencesStore: PreferencesStore) {
+        self.preferencesStore = preferencesStore
         self.store = CaptureContextStore()
         self.namer = VisionOnlyNamer()
         self.engine = RenameEngine(namer: namer, store: store)
@@ -32,7 +34,7 @@ final class PipelineController {
     func start() {
         guard state == .stopped else { return }
 
-        let screenshotFolder = ScreenshotPreferences.folder
+        let screenshotFolder = preferencesStore.screenshotFolder
         watcher = ScreenshotWatcher(folderURL: screenshotFolder) { [weak self] url, detectedAt in
             guard let self else { return }
             self.lastDetectedURL = url
@@ -78,5 +80,5 @@ final class PipelineController {
     }
 
     /// The screenshot folder being watched.
-    var screenshotFolder: URL { ScreenshotPreferences.folder }
+    var screenshotFolder: URL { preferencesStore.screenshotFolder }
 }
