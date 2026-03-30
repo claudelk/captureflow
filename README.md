@@ -79,5 +79,7 @@ Menu options: Enable/Disable, Re-analyze Last Screenshot, Open Screenshot Folder
 - **Step 1** ✅ CLI naming brain (`sst`) — Vision OCR + scene classification
 - **Step 2** ✅ Background daemon (`ssd`) — CGEventTap + FSEvents + RenameEngine
 - **Step 3** ✅ Menu bar app (`SmartScreenShot`) — NSStatusItem + preferences + launch at login
-- **Step 4** Finder Quick Action + global hotkey
+- **Step 4** Finder Quick Action (batch rename) + global hotkey
 - **Step 5** Code signing & notarization (Developer ID)
+- **Step 6** Enhanced naming — `FoundationModelsNamer` (macOS 26+, Apple Intelligence)
+- **Step 7** Advanced naming — `FastVLMNamer` (Apple Silicon, on-device VLM via MLX)

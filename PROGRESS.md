@@ -94,10 +94,14 @@ swift build
 
 ---
 
-## Step 4 — Finder Quick Action + hotkey (planned)
+## Step 4 — Finder Quick Action + global hotkey (planned)
 
-- Finder extension for right-click rename
-- Global hotkey handler — both call the same naming pipeline
+- **Finder Quick Action** — right-click one or multiple screenshots in Finder → "Rename with SmartScreenShot"
+  - Supports batch selection: select 20 files, rename them all in one swoop
+  - Calls the same `VisionOnlyNamer` + `SlugGenerator` pipeline
+  - Great for retroactively renaming old screenshots
+- **Global hotkey** — configurable keyboard shortcut (e.g. Ctrl+Option+S) to manually trigger rename on the most recent screenshot
+  - Hooks into the existing Preferences hotkey stub
 
 ---
 
@@ -111,9 +115,26 @@ swift build
 
 ---
 
+## Step 6 — Enhanced naming: FoundationModelsNamer (planned)
+
+- **Tier 2 namer** — uses Apple's on-device Foundation Models framework (macOS 26+, Apple Intelligence enabled)
+- Vision OCR + classification feeds into an on-device LLM that generates a more descriptive, context-aware filename
+- Automatically selected when available; falls back to Tier 1 (`VisionOnlyNamer`) on older hardware/OS
+- Wired into the existing `ImageNamer` protocol and Preferences "Naming Mode" dropdown
+
+---
+
+## Step 7 — Advanced naming: FastVLMNamer (planned)
+
+- **Tier 3 namer** — uses Apple's FastVLM via MLX for vision-language understanding
+- User downloads the model once (~500MB); best offline fallback with multimodal understanding
+- Requires Apple Silicon (M1+), macOS 13+
+- Opt-in via Preferences — model download prompt on first enable
+- Best naming quality: understands image content directly, not just OCR text
+
+---
+
 ## Known gaps / future work
 
-- `FoundationModelsNamer` (Tier 2) — awaiting macOS 26 SDK
-- `FastVLMNamer` (Tier 3) — Apple FastVLM via MLX, opt-in download
 - Browser URL capture (Safari / Chrome / Arc / Firefox via AppleScript)
 - Unit tests for `SlugGenerator` and `VisionOnlyNamer.buildSlug`
