@@ -14,7 +14,7 @@ final class PreferencesStore {
     private func registerDefaults() {
         defaults.register(defaults: [
             Keys.isEnabled: true,
-            Keys.namerTier: "vision-only",
+            Keys.namerTier: "auto",
             Keys.launchAtLogin: false,
             Keys.browserCaptureEnabled: false,
             Keys.hotkeyEnabled: false,
