@@ -27,6 +27,8 @@ final class PipelineController {
     private(set) var lastDetectedURL: URL?
     /// Destination path after the most recent rename.
     private(set) var lastDestinationURL: URL?
+    /// Called on the main thread after a successful rename (for UI feedback).
+    var onRenameCompleted: (() -> Void)?
 
     init(preferencesStore: PreferencesStore) {
         self.preferencesStore = preferencesStore
@@ -83,7 +85,10 @@ final class PipelineController {
 
             Task {
                 let dest = await self.engine.process(newFile: url, detectedAt: detectedAt)
-                if let dest { self.lastDestinationURL = dest }
+                if let dest {
+                    self.lastDestinationURL = dest
+                    DispatchQueue.main.async { self.onRenameCompleted?() }
+                }
             }
         }
         watcher?.start()

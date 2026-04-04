@@ -17,6 +17,9 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         super.init()
         setupButton()
         buildMenu()
+        pipeline.onRenameCompleted = { [weak self] in
+            self?.flashIcon()
+        }
     }
 
     // MARK: - Setup
@@ -124,7 +127,25 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     }
 
     @objc private func reanalyzeLast(_ sender: NSMenuItem) {
+        flashIcon()
         pipeline.reanalyzeLast()
+    }
+
+    /// Briefly flash the menu bar icon to indicate activity.
+    private func flashIcon() {
+        guard let button = statusItem.button else { return }
+        let original = button.image
+
+        // Switch to a filled variant
+        button.image = NSImage(
+            systemSymbolName: "camera.viewfinder.fill",
+            accessibilityDescription: "SmartScreenShot — working"
+        )
+
+        // Revert after 0.6s
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            button.image = original
+        }
     }
 
     @objc private func batchRename(_ sender: NSMenuItem) {
