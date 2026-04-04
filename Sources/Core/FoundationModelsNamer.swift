@@ -50,9 +50,12 @@ public final class FoundationModelsNamer: ImageNamer {
                 instructions: Instructions("""
                     You generate short, descriptive filenames for screenshots. \
                     Given OCR text, scene labels, and app context, produce a \
-                    concise 2-5 word name that describes what the screenshot shows. \
+                    concise 2-5 word name that captures the MAIN TOPIC of the page. \
                     Use lowercase words. No file extension. No special characters. \
-                    Focus on WHAT is shown, not raw OCR text.
+                    Prioritize the page title or main headline over body text, \
+                    secondary UI elements, sidebars, or nested content within the page. \
+                    If this is a web article, use the article title. \
+                    If this is an app, describe the main screen or view shown.
                     """)
             )
 
@@ -94,15 +97,18 @@ public final class FoundationModelsNamer: ImageNamer {
             parts.append("App: \(context.appName)")
         }
 
-        // Top OCR lines (filtered, max 5)
-        let topOCR = ocrLines
+        // OCR lines: send the top lines, marking the highest-scored as likely headline
+        let filtered = ocrLines
             .filter { $0.confidence > 0.3 }
             .sorted { SlugGenerator.meaningScore(for: $0.text) > SlugGenerator.meaningScore(for: $1.text) }
-            .prefix(5)
-            .map { $0.text }
 
-        if !topOCR.isEmpty {
-            parts.append("Text visible: \(topOCR.joined(separator: " | "))")
+        if let first = filtered.first {
+            parts.append("Likely headline/title: \(first.text)")
+        }
+
+        let otherLines = filtered.dropFirst().prefix(7).map { $0.text }
+        if !otherLines.isEmpty {
+            parts.append("Other text: \(otherLines.joined(separator: " | "))")
         }
 
         // Scene labels
