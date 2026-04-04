@@ -27,6 +27,12 @@ let package = Package(
         .target(
             name: "SmartScreenShotCore",
             path: "Sources/Core"
+        ),
+        // Tests
+        .testTarget(
+            name: "SmartScreenShotTests",
+            dependencies: ["SmartScreenShotCore"],
+            path: "Tests"
         )
     ]
 )
