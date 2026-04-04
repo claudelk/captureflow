@@ -29,7 +29,7 @@ final class PipelineController {
         self.preferencesStore = preferencesStore
         self.store = CaptureContextStore()
         self.namer = VisionOnlyNamer()
-        self.engine = RenameEngine(namer: namer, store: store)
+        self.engine = RenameEngine(namer: namer, store: store, groupByApp: preferencesStore.groupByApp)
     }
 
     // MARK: - Lifecycle

@@ -31,6 +31,7 @@ final class PreferencesStore {
         static let launchAtLogin = "launchAtLogin"
         static let browserCaptureEnabled = "browserCaptureEnabled"
         static let screenshotFolderOverride = "screenshotFolderOverride"
+        static let groupByApp = "groupByApp"
         static let hotkeyEnabled = "hotkeyEnabled"
         static let hotkeyKeyCode = "hotkeyKeyCode"
         static let hotkeyModifiers = "hotkeyModifiers"
@@ -57,6 +58,11 @@ final class PreferencesStore {
     var browserCaptureEnabled: Bool {
         get { defaults.bool(forKey: Keys.browserCaptureEnabled) }
         set { defaults.set(newValue, forKey: Keys.browserCaptureEnabled) }
+    }
+
+    var groupByApp: Bool {
+        get { defaults.bool(forKey: Keys.groupByApp) }
+        set { defaults.set(newValue, forKey: Keys.groupByApp) }
     }
 
     // MARK: - Hotkey

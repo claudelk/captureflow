@@ -28,9 +28,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         }
 
         #if MAS
-        let windowHeight: CGFloat = 240
+        let windowHeight: CGFloat = 280
         #else
-        let windowHeight: CGFloat = 320
+        let windowHeight: CGFloat = 360
         #endif
 
         let w = NSWindow(
@@ -48,9 +48,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         content.autoresizingMask = [.width, .height]
 
         #if MAS
-        var y: CGFloat = 195
+        var y: CGFloat = 235
         #else
-        var y: CGFloat = 275
+        var y: CGFloat = 315
         #endif
 
         // --- Screenshot Folder ---
@@ -97,7 +97,19 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         tierPopup.selectItem(at: 0)
         content.addSubview(tierPopup)
 
-        y -= 50
+        y -= 40
+
+        // --- Group by App ---
+        let groupByAppCheckbox = NSButton(
+            checkboxWithTitle: "Group screenshots by frontmost app",
+            target: self,
+            action: #selector(groupByAppToggled(_:))
+        )
+        groupByAppCheckbox.frame.origin = NSPoint(x: 20, y: y)
+        groupByAppCheckbox.state = preferencesStore.groupByApp ? .on : .off
+        content.addSubview(groupByAppCheckbox)
+
+        y -= 40
 
         // --- Launch at Login ---
         let launchCheckbox = NSButton(
@@ -185,6 +197,11 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         folderLabel?.stringValue = preferencesStore.screenshotFolder.path
         sender.isHidden = true
         onFolderChanged?()
+    }
+
+    @objc private func groupByAppToggled(_ sender: NSButton) {
+        preferencesStore.groupByApp = sender.state == .on
+        onFolderChanged?()  // Restart pipeline to pick up the new groupByApp setting
     }
 
     @objc private func launchAtLoginToggled(_ sender: NSButton) {
