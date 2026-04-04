@@ -6,34 +6,33 @@
 
 Run: `./scripts/integration-test.sh`
 
-The script uses `screencapture` to create real screenshots and verifies the app
+The script creates synthetic PNG files in the screenshot folder and verifies the app
 detects and renames them. It toggles settings via `defaults write` and restarts
 the app to test different configurations.
 
-**Prerequisites:** SmartScreenShot.app must be running with Accessibility permission.
-
 | # | Test | Status |
 |---|------|--------|
-| 1.2 | Screenshot is renamed into `screenshot_YYYY-MM-DD/` folder | |
-| 1.4 | Renamed file has content-based name (not "Screenshot ...") | |
-| 1.5 | File extension is `.png` | |
-| 2.3 | While disabled, screenshot is NOT renamed | |
-| 2.4 | After re-enabling, screenshots are renamed again | |
-| 4.1 | `groupByApp` is off by default | |
-| 4.2 | With groupByApp off, folder is `screenshot_YYYY-MM-DD/` | |
-| 4.4 | With groupByApp on, folder uses app name (e.g. `screencapture_...`) | |
-| 4.5 | After disabling groupByApp, back to `screenshot_` folder | |
-| 8.3 | Batch rename 5 files via CLI `sst --rename` | |
-| 9.1 | 3 rapid screenshots → all 3 renamed | |
-| 9.2 | All renamed files have unique names | |
-| 9.3 | All land in the same date folder | |
+| 1.2 | Screenshot is renamed into `screenshot_YYYY-MM-DD/` folder | PASS |
+| 1.4 | Renamed file has content-based name (not "Screenshot ...") | PASS |
+| 1.5 | File extension is `.png` | PASS |
+| 1.2b | Folder name starts with `screenshot_` (groupByApp off) | PASS |
+| 2.3 | While disabled, screenshot is NOT renamed | PASS |
+| 2.4 | After re-enabling, screenshots are renamed again | PASS |
+| 4.1 | `groupByApp` is off by default | PASS |
+| 4.2 | With groupByApp off, folder is `screenshot_YYYY-MM-DD/` | PASS |
+| 4.3 | groupByApp setting can be toggled on | PASS |
+| 4.5 | After disabling groupByApp, back to `screenshot_` folder | PASS |
+| 8.3 | Batch rename 5 files via CLI `sst --rename` | PASS |
+| 9.1 | 3 rapid screenshots → all 3 renamed | PASS |
+| 9.2 | All renamed files have unique names | PASS |
+| 9.3 | All land in the same date folder | PASS |
 
 ---
 
 ## Part B: Manual Tests (you must do these)
 
-These require GUI interaction (clicking menus, opening dialogs, visual checks).
-Mark each as PASS or FAIL. Add notes for any failures.
+These require GUI interaction (clicking menus, opening dialogs, visual checks)
+that cannot be automated. Mark each as PASS or FAIL. Add notes for any failures.
 
 ### Menu Bar — Visual
 
@@ -63,10 +62,11 @@ Mark each as PASS or FAIL. Add notes for any failures.
 - [ ] **3.5** Click "Reset" → folder reverts to default
 - [ ] **3.6** Take a screenshot → lands in the DEFAULT folder
 
-### Preferences — Group by App (Visual Check)
+### Preferences — Group by App
 
 - [ ] **4.1v** Checkbox "Group screenshots by frontmost app" visible and unchecked by default
-- [ ] **4.3** Check the checkbox → no crash, setting persists
+- [ ] **4.3v** Check the checkbox → no crash, setting persists
+- [ ] **4.4** With groupByApp ON, take a real screenshot (Cmd+Shift+3) with an app in front → folder uses app name (e.g. `safari_YYYY-MM-DD/`)
 
 ### Preferences — Naming Mode
 
@@ -86,7 +86,7 @@ Mark each as PASS or FAIL. Add notes for any failures.
 - [ ] **7.3** Enable → press Ctrl+Option+S → newest screenshot renamed
 - [ ] **7.4** Disable → Ctrl+Option+S does nothing
 
-### Preferences — Screenshot with Specific App
+### Real Screenshots
 
 - [ ] **1.3** Take screenshot with Cmd+Shift+4 (area select) → renamed correctly
 
@@ -102,15 +102,15 @@ Mark each as PASS or FAIL. Add notes for any failures.
 
 | Section | Automated | Manual Pass | Manual Fail | Manual Not Tested |
 |---------|-----------|-------------|-------------|-------------------|
-| 1. Basic Pipeline | script | | | |
-| 2. Menu Bar Actions | script (enable/disable) | | | |
+| 1. Basic Pipeline | 4/4 PASS | | | |
+| 2. Menu Bar Actions | 2/2 PASS | | | |
 | 3. Screenshot Folder | — | | | |
-| 4. Group by App | script | | | |
+| 4. Group by App | 4/4 PASS | | | |
 | 5. Naming Mode | — | | | |
 | 6. Launch at Login | — | | | |
 | 7. Global Hotkey | — | | | |
-| 8. Batch Rename | script (CLI) | | | |
-| 9. Multiple Screenshots | script | | | |
+| 8. Batch Rename | 1/1 PASS | | | |
+| 9. Multiple Screenshots | 3/3 PASS | | | |
 | 10. App Lifecycle | — | | | |
 
 **Tested by:** _______________

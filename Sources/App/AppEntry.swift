@@ -10,35 +10,36 @@ struct SmartScreenShotApp {
         #if !MAS
         // Accessibility is needed for CGEventTap (keystroke detection).
         // If not granted, the app still works — just without keystroke context.
-        // Show the prompt only once; after that, silently continue without.
-        let accessibilityPromptShown = UserDefaults(suiteName: "com.smartscreenshot.app")?
-            .bool(forKey: "accessibilityPromptShown") ?? false
+        // Show the prompt only once per install; after that, silently continue.
+        if !AXIsProcessTrusted() {
+            let defaults = UserDefaults(suiteName: "com.smartscreenshot.app")
+            let prompted = defaults?.bool(forKey: "accessibilityPromptShown") ?? false
 
-        if !AXIsProcessTrusted() && !accessibilityPromptShown {
-            UserDefaults(suiteName: "com.smartscreenshot.app")?
-                .set(true, forKey: "accessibilityPromptShown")
+            if !prompted {
+                defaults?.set(true, forKey: "accessibilityPromptShown")
 
-            let alert = NSAlert()
-            alert.messageText = "Accessibility Permission (Optional)"
-            alert.informativeText = """
-            SmartScreenShot works best with Accessibility access — it \
-            detects screenshot keystrokes to capture which app you're in.
+                let alert = NSAlert()
+                alert.messageText = "Accessibility Permission (Optional)"
+                alert.informativeText = """
+                SmartScreenShot works best with Accessibility access — it \
+                detects screenshot keystrokes to capture which app you're in.
 
-            Without it, screenshots are still auto-renamed, but app \
-            context may be less accurate.
+                Without it, screenshots are still auto-renamed, but app \
+                context may be less accurate.
 
-            Grant access in System Settings \u{203A} Privacy & Security \
-            \u{203A} Accessibility for the best experience.
-            """
-            alert.alertStyle = .informational
-            alert.addButton(withTitle: "Open Settings")
-            alert.addButton(withTitle: "Continue Without")
+                Grant access in System Settings \u{203A} Privacy & Security \
+                \u{203A} Accessibility for the best experience.
+                """
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: "Open Settings")
+                alert.addButton(withTitle: "Continue Without")
 
-            let response = alert.runModal()
-            if response == .alertFirstButtonReturn {
-                NSWorkspace.shared.open(
-                    URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-                )
+                let response = alert.runModal()
+                if response == .alertFirstButtonReturn {
+                    NSWorkspace.shared.open(
+                        URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+                    )
+                }
             }
         }
         // Continue running — pipeline will skip KeystrokeTap if it fails
