@@ -76,7 +76,6 @@ public final class FoundationModelsNamer: ImageNamer {
             }
             return slug
         } catch {
-            print("[FoundationModelsNamer] LLM failed: \(error.localizedDescription) — falling back to Tier 1")
             return visionNamer.buildSlug(
                 ocrLines: ocrLines,
                 classifications: classifications,
@@ -99,12 +98,11 @@ public final class FoundationModelsNamer: ImageNamer {
             parts.append("App: \(context.appName)")
         }
 
-        // Send ALL OCR lines in reading order (as returned by Vision) — let the LLM
-        // decide what's the main topic. Do NOT pre-sort by meaningScore, as that
-        // promotes long body text over short headline lines.
+        // Send ALL OCR lines in reading order (as returned by Vision).
+        // Filter out very short fragments (nav items, single words) to prioritize content.
         let allLines = ocrLines
-            .filter { $0.confidence > 0.3 }
-            .prefix(15)
+            .filter { $0.confidence > 0.3 && $0.text.count >= 3 }
+            .prefix(25)
             .map { $0.text }
 
         if !allLines.isEmpty {
