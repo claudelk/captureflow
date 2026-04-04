@@ -40,7 +40,7 @@ log_fail() {
 # Get the screenshot folder from app preferences (or default to Desktop)
 get_screenshot_folder() {
     local override
-    override=$(defaults read com.smartscreenshot.app screenshotFolderOverride 2>/dev/null || true)
+    override=$(defaults read com.smartscreenshot.preferences screenshotFolderOverride 2>/dev/null || true)
     if [[ -n "$override" ]]; then
         echo "$override"
     else
@@ -139,8 +139,8 @@ SCREENSHOT_FOLDER=$(get_screenshot_folder)
 TODAY=$(date +%Y-%m-%d)
 
 # Reset test state — ensure clean defaults
-defaults write com.smartscreenshot.app groupByApp -bool false
-defaults write com.smartscreenshot.app isEnabled -bool true
+defaults write com.smartscreenshot.preferences groupByApp -bool false
+defaults write com.smartscreenshot.preferences isEnabled -bool true
 
 echo "============================================"
 echo "  SmartScreenShot Integration Tests"
@@ -215,7 +215,7 @@ echo ""
 echo "--- 4. Group by App ---"
 
 # 4.1 — Default is off
-GROUP_BY_APP=$(defaults read com.smartscreenshot.app groupByApp 2>/dev/null || echo "0")
+GROUP_BY_APP=$(defaults read com.smartscreenshot.preferences groupByApp 2>/dev/null || echo "0")
 if [[ "$GROUP_BY_APP" == "0" ]]; then
     log_pass "4.1 groupByApp is off by default"
 else
@@ -227,8 +227,8 @@ fi
 log_pass "4.2 With groupByApp off, folder is screenshot_ (verified in 1.2b)"
 
 # 4.3/4.4 — Enable groupByApp, verify setting persists
-defaults write com.smartscreenshot.app groupByApp -bool true
-GROUP_VAL=$(defaults read com.smartscreenshot.app groupByApp 2>/dev/null)
+defaults write com.smartscreenshot.preferences groupByApp -bool true
+GROUP_VAL=$(defaults read com.smartscreenshot.preferences groupByApp 2>/dev/null)
 if [[ "$GROUP_VAL" == "1" ]]; then
     log_pass "4.3 groupByApp setting toggled on successfully"
 else
@@ -241,7 +241,7 @@ fi
 echo "  ⏭️  4.4 Skipped — requires real screenshot keystroke (manual test)"
 
 # 4.5 — Disable groupByApp, verify back to screenshot_
-defaults write com.smartscreenshot.app groupByApp -bool false
+defaults write com.smartscreenshot.preferences groupByApp -bool false
 restart_app
 
 touch_marker
@@ -301,7 +301,7 @@ log_pass "9.3 All landed in screenshot_${TODAY}/ folder"
 echo ""
 echo "--- 2. Pipeline Enable/Disable ---"
 
-defaults write com.smartscreenshot.app isEnabled -bool false
+defaults write com.smartscreenshot.preferences isEnabled -bool false
 restart_app
 
 touch_marker
@@ -318,7 +318,7 @@ fi
 [[ -f "$SHOT_PATH" ]] && rm -f "$SHOT_PATH"
 
 # Re-enable
-defaults write com.smartscreenshot.app isEnabled -bool true
+defaults write com.smartscreenshot.preferences isEnabled -bool true
 restart_app
 
 touch_marker

@@ -6,7 +6,7 @@ final class PreferencesStore {
 
     private let defaults: UserDefaults
 
-    init(suiteName: String = "com.smartscreenshot.app") {
+    init(suiteName: String = "com.smartscreenshot.preferences") {
         self.defaults = UserDefaults(suiteName: suiteName) ?? .standard
         registerDefaults()
     }

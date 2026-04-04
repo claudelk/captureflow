@@ -12,7 +12,7 @@ struct SmartScreenShotApp {
         // If not granted, the app still works — just without keystroke context.
         // Show the prompt only once per install; after that, silently continue.
         if !AXIsProcessTrusted() {
-            let defaults = UserDefaults(suiteName: "com.smartscreenshot.app")
+            let defaults = UserDefaults(suiteName: "com.smartscreenshot.preferences")
             let prompted = defaults?.bool(forKey: "accessibilityPromptShown") ?? false
 
             if !prompted {
