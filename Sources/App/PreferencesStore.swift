@@ -46,7 +46,7 @@ final class PreferencesStore {
     }
 
     var namerTier: String {
-        get { defaults.string(forKey: Keys.namerTier) ?? "vision-only" }
+        get { defaults.string(forKey: Keys.namerTier) ?? "auto" }
         set { defaults.set(newValue, forKey: Keys.namerTier) }
     }
 

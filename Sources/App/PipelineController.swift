@@ -1,6 +1,9 @@
 import AppKit
 import Foundation
 import SmartScreenShotCore
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
 
 /// Manages the screenshot rename pipeline lifecycle.
 /// Wraps KeystrokeTap + ScreenshotWatcher + RenameEngine with start/stop controls.
@@ -32,15 +35,17 @@ final class PipelineController {
         self.engine = RenameEngine(namer: namer, store: store, groupByApp: preferencesStore.groupByApp)
     }
 
-    /// Factory: creates the appropriate namer based on the tier preference and runtime availability.
-    private static func createNamer(tier: String) -> any ImageNamer {
-        if tier == "foundation-models" {
-            #if canImport(FoundationModels)
-            if #available(macOS 26.0, *) {
-                return FoundationModelsNamer()
-            }
-            #endif
+    /// Factory: creates the best available namer.
+    /// "auto" (default): picks the best available tier.
+    /// "vision-only": forces Standard (Tier 1).
+    /// "foundation-models": forces Enhanced (Tier 2), falls back if unavailable.
+    static func createNamer(tier: String) -> any ImageNamer {
+        let wantsLLM = (tier == "auto" || tier == "foundation-models")
+        #if canImport(FoundationModels)
+        if wantsLLM, #available(macOS 26.0, *), SystemLanguageModel.default.isAvailable {
+            return FoundationModelsNamer()
         }
+        #endif
         return VisionOnlyNamer()
     }
 

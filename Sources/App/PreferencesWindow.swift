@@ -105,11 +105,11 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         tier3.isEnabled = false
         tierPopup.menu?.addItem(tier3)
 
-        // Select current tier
-        switch preferencesStore.namerTier {
-        case "foundation-models" where tier2Available:
+        // Select current tier — "auto" selects Enhanced if available
+        let currentTier = preferencesStore.namerTier
+        if tier2Available && (currentTier == "auto" || currentTier == "foundation-models") {
             tierPopup.selectItem(at: 1)
-        default:
+        } else {
             tierPopup.selectItem(at: 0)
         }
         content.addSubview(tierPopup)
