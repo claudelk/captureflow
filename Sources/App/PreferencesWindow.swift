@@ -5,7 +5,7 @@ import FoundationModels
 #endif
 
 /// Programmatic preferences window — no storyboard, no NIB.
-final class PreferencesWindow: NSObject, NSWindowDelegate {
+final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
 
     private var window: NSWindow?
     private let preferencesStore: PreferencesStore
@@ -203,8 +203,8 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         prefixField.stringValue = preferencesStore.customFolderPrefix
         prefixField.placeholderString = "my-prefix"
         prefixField.isEnabled = preferencesStore.useCustomFolderPrefix
-        prefixField.target = self
-        prefixField.action = #selector(customPrefixEdited(_:))
+        prefixField.delegate = self
+        prefixField.tag = 402
         self.customPrefixField = prefixField
         content.addSubview(prefixField)
 
@@ -368,9 +368,10 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         onFolderChanged?()
     }
 
-    @objc private func customPrefixEdited(_ sender: NSTextField) {
-        preferencesStore.customFolderPrefix = sender.stringValue
-        onFolderChanged?()
+    func controlTextDidChange(_ notification: Notification) {
+        guard let field = notification.object as? NSTextField, field.tag == 402 else { return }
+        preferencesStore.customFolderPrefix = field.stringValue
+        onFolderChanged?()  // Restart pipeline to use new prefix
     }
 
     @objc private func launchAtLoginToggled(_ sender: NSButton) {
