@@ -1,6 +1,5 @@
 /* StatusBarController — Menu */
-"menu.disable" = "Zima";
-"menu.enable" = "Washa";
+"menu.takeScreenshot" = "Piga picha ya skrini";
 "menu.reanalyze" = "Changanua tena picha ya mwisho";
 "menu.batchRename" = "Badilisha majina kwa wingi…";
 "menu.openFolder" = "Fungua folda ya picha";

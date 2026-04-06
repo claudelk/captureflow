@@ -37,14 +37,17 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
 
-        // Enable / Disable
-        let toggleItem = NSMenuItem(
-            title: pipeline.state == .running ? L10n.string("menu.disable") : L10n.string("menu.enable"),
-            action: #selector(togglePipeline(_:)),
+        // Take Screenshot — shows system shortcut hint
+        let screenshotItem = NSMenuItem(
+            title: L10n.string("menu.takeScreenshot"),
+            action: #selector(takeScreenshot(_:)),
             keyEquivalent: ""
         )
-        toggleItem.target = self
-        menu.addItem(toggleItem)
+        screenshotItem.target = self
+        // Show ⇧⌘3 as shortcut hint (non-functional, just visual)
+        screenshotItem.keyEquivalentModifierMask = [.shift, .command]
+        screenshotItem.keyEquivalent = "3"
+        menu.addItem(screenshotItem)
 
         menu.addItem(.separator())
 
@@ -104,10 +107,6 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     // MARK: - NSMenuDelegate
 
     func menuWillOpen(_ menu: NSMenu) {
-        // Update toggle title
-        if let toggleItem = menu.items.first {
-            toggleItem.title = pipeline.state == .running ? L10n.string("menu.disable") : L10n.string("menu.enable")
-        }
         // Update re-analyze availability
         if let reanalyzeItem = menu.item(withTag: 100) {
             reanalyzeItem.isEnabled = pipeline.lastDestinationURL != nil
@@ -116,14 +115,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     // MARK: - Actions
 
-    @objc private func togglePipeline(_ sender: NSMenuItem) {
-        if pipeline.state == .running {
-            pipeline.stop()
-            preferencesStore.isEnabled = false
-        } else {
-            pipeline.start()
-            preferencesStore.isEnabled = true
-        }
+    @objc private func takeScreenshot(_ sender: NSMenuItem) {
+        // Trigger macOS screenshot tool (interactive area selection)
+        let task = Process()
+        task.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        task.arguments = ["-i"] // interactive selection
+        try? task.run()
     }
 
     @objc private func reanalyzeLast(_ sender: NSMenuItem) {

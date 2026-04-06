@@ -1,6 +1,5 @@
 /* StatusBarController — Menu */
-"menu.disable" = "Desactivar";
-"menu.enable" = "Activar";
+"menu.takeScreenshot" = "Tomar captura";
 "menu.reanalyze" = "Re-analizar última captura";
 "menu.batchRename" = "Renombrar capturas por lote…";
 "menu.openFolder" = "Abrir carpeta de capturas";
