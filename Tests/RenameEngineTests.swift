@@ -138,6 +138,30 @@ final class RenameEngineTests: XCTestCase {
         XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "processManual should always use 'screenshot_'")
     }
 
+    func testCustomFolderPrefix() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, folderPrefix: "capture-d-ecran")
+
+        let testFile = createTestPNG()
+        let result = await engine.process(newFile: testFile, detectedAt: Date())
+
+        XCTAssertNotNil(result)
+        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
+        XCTAssertTrue(parentFolder.hasPrefix("capture-d-ecran_"), "Expected 'capture-d-ecran_' prefix, got: \(parentFolder)")
+    }
+
+    func testProcessManualUsesCustomPrefix() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, folderPrefix: "mes-captures")
+
+        let testFile = createTestPNG()
+        let result = await engine.processManual(file: testFile)
+
+        XCTAssertNotNil(result)
+        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
+        XCTAssertTrue(parentFolder.hasPrefix("mes-captures_"), "Expected 'mes-captures_' prefix, got: \(parentFolder)")
+    }
+
     func testProcessManualNonexistentFile() async {
         let store = CaptureContextStore()
         let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store)

@@ -242,26 +242,27 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         content.addSubview(separator)
 
         let feedbackTitle = makeLabel("Support & Feedback", at: 55, size: 12, color: .labelColor)
-        feedbackTitle.frame.size.width = 200
+        feedbackTitle.frame = NSRect(x: 20, y: 55, width: 420, height: 16)
         content.addSubview(feedbackTitle)
 
-        let emailLabel = makeLabel(Self.supportEmail, at: 38, size: 11, color: .secondaryLabelColor)
-        emailLabel.frame.origin.x = 20
-        emailLabel.frame.size.width = 200
+        let emailLabel = NSTextField(labelWithString: Self.supportEmail)
+        emailLabel.frame = NSRect(x: 20, y: 35, width: 220, height: 16)
+        emailLabel.font = .systemFont(ofSize: 11)
+        emailLabel.textColor = .secondaryLabelColor
         emailLabel.isSelectable = true
         content.addSubview(emailLabel)
 
         let copyButton = NSButton(title: L10n.string("prefs.copyEmail"), target: self, action: #selector(copyEmail(_:)))
         copyButton.bezelStyle = .rounded
         copyButton.font = .systemFont(ofSize: 11)
-        copyButton.frame = NSRect(x: 280, y: 35, width: 85, height: 24)
+        copyButton.frame = NSRect(x: 250, y: 32, width: 95, height: 24)
         copyButton.tag = 500
         content.addSubview(copyButton)
 
         let sendButton = NSButton(title: L10n.string("prefs.sendEmail"), target: self, action: #selector(sendEmail(_:)))
         sendButton.bezelStyle = .rounded
         sendButton.font = .systemFont(ofSize: 11)
-        sendButton.frame = NSRect(x: 370, y: 35, width: 85, height: 24)
+        sendButton.frame = NSRect(x: 350, y: 32, width: 95, height: 24)
         content.addSubview(sendButton)
 
         // --- Version ---
