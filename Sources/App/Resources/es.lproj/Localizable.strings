@@ -1,6 +1,7 @@
 /* StatusBarController — Menu */
 "menu.captureFullScreen" = "Capturar pantalla completa";
 "menu.captureArea" = "Capturar zona seleccionada";
+"menu.recordScreen" = "Grabar pantalla";
 "menu.reanalyze" = "Re-analizar última captura";
 "menu.batchRename" = "Renombrar capturas por lote…";
 "menu.openFolder" = "Abrir carpeta de capturas";
@@ -33,6 +34,15 @@
 "prefs.folderPrefix" = "Prefijo de carpeta:";
 "prefs.folderPrefixDefault" = "Por defecto";
 "prefs.folderPrefixCustom" = "Personalizado:";
+"prefs.separatePhotoVideo" = "Separar fotos y videos en subcarpetas";
+"prefs.photoFormat" = "Formato de foto:";
+"prefs.videoFormat" = "Formato de video:";
+"prefs.formatPNG" = "PNG (original)";
+"prefs.formatJPEG" = "JPEG (más pequeño)";
+"prefs.formatMOV" = "MOV (original)";
+"prefs.formatMP4" = "MP4 (compatible)";
+"prefs.tooltipJPEG" = "Los archivos JPEG son más pequeños pero usan compresión con pérdida";
+"prefs.tooltipMP4" = "MP4 es más compatible pero la conversión toma unos segundos";
 "prefs.support" = "Soporte:";
 "prefs.copyEmail" = "Copiar email";
 "prefs.sendEmail" = "Enviar email";

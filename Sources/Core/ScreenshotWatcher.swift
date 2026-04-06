@@ -55,8 +55,9 @@ public final class ScreenshotWatcher {
                     let created = flags & UInt32(kFSEventStreamEventFlagItemCreated) != 0
                     let renamed = flags & UInt32(kFSEventStreamEventFlagItemRenamed) != 0
                     let isFile  = flags & UInt32(kFSEventStreamEventFlagItemIsFile)  != 0
-                    let isPNG   = path.lowercased().hasSuffix(".png")
-                    guard (created || renamed) && isFile && isPNG else { continue }
+                    let lowered = path.lowercased()
+                    let isSupported = lowered.hasSuffix(".png") || lowered.hasSuffix(".mov")
+                    guard (created || renamed) && isFile && isSupported else { continue }
 
                     let url      = URL(fileURLWithPath: path)
                     let fileName = url.lastPathComponent

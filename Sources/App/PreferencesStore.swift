@@ -39,6 +39,9 @@ final class PreferencesStore {
         static let appLanguage = "appLanguage"
         static let useCustomFolderPrefix = "useCustomFolderPrefix"
         static let customFolderPrefix = "customFolderPrefix"
+        static let separatePhotoVideo = "separatePhotoVideo"
+        static let photoFormat = "photoFormat"
+        static let videoFormat = "videoFormat"
     }
 
     // MARK: - Properties
@@ -83,6 +86,23 @@ final class PreferencesStore {
     var customFolderPrefix: String {
         get { defaults.string(forKey: Keys.customFolderPrefix) ?? "" }
         set { defaults.set(newValue, forKey: Keys.customFolderPrefix) }
+    }
+
+    // MARK: - Media Organization & Format
+
+    var separatePhotoVideo: Bool {
+        get { defaults.bool(forKey: Keys.separatePhotoVideo) }
+        set { defaults.set(newValue, forKey: Keys.separatePhotoVideo) }
+    }
+
+    var photoFormat: String {
+        get { defaults.string(forKey: Keys.photoFormat) ?? "png" }
+        set { defaults.set(newValue, forKey: Keys.photoFormat) }
+    }
+
+    var videoFormat: String {
+        get { defaults.string(forKey: Keys.videoFormat) ?? "mov" }
+        set { defaults.set(newValue, forKey: Keys.videoFormat) }
     }
 
     // MARK: - Hotkey

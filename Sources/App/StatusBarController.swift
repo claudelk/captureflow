@@ -60,6 +60,17 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         areaItem.keyEquivalent = "4"
         menu.addItem(areaItem)
 
+        // Record Screen — ⇧⌘5
+        let recordItem = NSMenuItem(
+            title: L10n.string("menu.recordScreen"),
+            action: #selector(recordScreen(_:)),
+            keyEquivalent: ""
+        )
+        recordItem.target = self
+        recordItem.keyEquivalentModifierMask = [.shift, .command]
+        recordItem.keyEquivalent = "5"
+        menu.addItem(recordItem)
+
         menu.addItem(.separator())
 
         // Re-analyze last
@@ -146,6 +157,16 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         }
     }
 
+    @objc private func recordScreen(_ sender: NSMenuItem) {
+        statusItem.menu?.cancelTracking()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+            task.arguments = ["-v"] // video recording mode
+            try? task.run()
+        }
+    }
+
     @objc private func reanalyzeLast(_ sender: NSMenuItem) {
         flashIcon()
         pipeline.reanalyzeLast()
@@ -186,7 +207,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = true
-        panel.allowedContentTypes = [.png, .jpeg]
+        panel.allowedContentTypes = [.png, .jpeg, .quickTimeMovie, .mpeg4Movie]
         panel.message = L10n.string("dialog.selectScreenshots")
         panel.prompt = L10n.string("dialog.rename")
         panel.directoryURL = pipeline.screenshotFolder

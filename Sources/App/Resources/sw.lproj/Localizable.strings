@@ -1,6 +1,7 @@
 /* StatusBarController — Menu */
 "menu.captureFullScreen" = "Nasa skrini nzima";
 "menu.captureArea" = "Nasa eneo lililochaguliwa";
+"menu.recordScreen" = "Rekodi skrini";
 "menu.reanalyze" = "Changanua tena picha ya mwisho";
 "menu.batchRename" = "Badilisha majina kwa wingi…";
 "menu.openFolder" = "Fungua folda ya picha";
@@ -33,6 +34,15 @@
 "prefs.folderPrefix" = "Kiambishi cha folda:";
 "prefs.folderPrefixDefault" = "Chaguo-msingi";
 "prefs.folderPrefixCustom" = "Maalum:";
+"prefs.separatePhotoVideo" = "Tenganisha picha na video katika folda ndogo";
+"prefs.photoFormat" = "Muundo wa picha:";
+"prefs.videoFormat" = "Muundo wa video:";
+"prefs.formatPNG" = "PNG (asili)";
+"prefs.formatJPEG" = "JPEG (ndogo zaidi)";
+"prefs.formatMOV" = "MOV (asili)";
+"prefs.formatMP4" = "MP4 (inaoana zaidi)";
+"prefs.tooltipJPEG" = "Faili za JPEG ni ndogo lakini zinatumia ukandamizaji wenye hasara";
+"prefs.tooltipMP4" = "MP4 inaoana zaidi lakini ubadilishaji unachukua sekunde chache";
 "prefs.support" = "Msaada:";
 "prefs.copyEmail" = "Nakili barua pepe";
 "prefs.sendEmail" = "Tuma barua pepe";

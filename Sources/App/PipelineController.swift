@@ -41,7 +41,15 @@ final class PipelineController {
         let langCode = L10n.activeLanguageCode
         let namer = createNamer(tier: preferencesStore.namerTier, languageCode: langCode)
         let prefix = resolvePrefix(preferencesStore: preferencesStore, languageCode: langCode)
-        return RenameEngine(namer: namer, store: store, groupByApp: preferencesStore.groupByApp, folderPrefix: prefix)
+        return RenameEngine(
+            namer: namer,
+            store: store,
+            groupByApp: preferencesStore.groupByApp,
+            folderPrefix: prefix,
+            separateSubfolders: preferencesStore.separatePhotoVideo,
+            photoFormat: PhotoFormat(rawValue: preferencesStore.photoFormat) ?? .png,
+            videoFormat: VideoFormat(rawValue: preferencesStore.videoFormat) ?? .mov
+        )
     }
 
     /// Factory: creates the best available namer.

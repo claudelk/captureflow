@@ -34,9 +34,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         }
 
         #if MAS
-        let windowHeight: CGFloat = 500
+        let windowHeight: CGFloat = 630
         #else
-        let windowHeight: CGFloat = 580
+        let windowHeight: CGFloat = 710
         #endif
 
         let w = NSWindow(
@@ -54,9 +54,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         content.autoresizingMask = [.width, .height]
 
         #if MAS
-        var y: CGFloat = 455
+        var y: CGFloat = 585
         #else
-        var y: CGFloat = 535
+        var y: CGFloat = 665
         #endif
 
         // --- Screenshot Folder ---
@@ -124,6 +124,44 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         groupByAppCheckbox.frame.origin = NSPoint(x: 20, y: y)
         groupByAppCheckbox.state = preferencesStore.groupByApp ? .on : .off
         content.addSubview(groupByAppCheckbox)
+
+        y -= 30
+
+        // --- Separate Photos/Videos ---
+        let separateCheckbox = NSButton(
+            checkboxWithTitle: L10n.string("prefs.separatePhotoVideo"),
+            target: self,
+            action: #selector(separatePhotoVideoToggled(_:))
+        )
+        separateCheckbox.frame.origin = NSPoint(x: 20, y: y)
+        separateCheckbox.state = preferencesStore.separatePhotoVideo ? .on : .off
+        content.addSubview(separateCheckbox)
+
+        y -= 35
+
+        // --- Photo Format ---
+        content.addSubview(makeLabel(L10n.string("prefs.photoFormat"), at: y))
+
+        let photoPopup = NSPopUpButton(frame: NSRect(x: 160, y: y - 2, width: 180, height: 26), pullsDown: false)
+        photoPopup.addItems(withTitles: [L10n.string("prefs.formatPNG"), L10n.string("prefs.formatJPEG")])
+        photoPopup.target = self
+        photoPopup.action = #selector(photoFormatChanged(_:))
+        photoPopup.selectItem(at: preferencesStore.photoFormat == "jpeg" ? 1 : 0)
+        photoPopup.toolTip = L10n.string("prefs.tooltipJPEG")
+        content.addSubview(photoPopup)
+
+        y -= 32
+
+        // --- Video Format ---
+        content.addSubview(makeLabel(L10n.string("prefs.videoFormat"), at: y))
+
+        let videoPopup = NSPopUpButton(frame: NSRect(x: 160, y: y - 2, width: 180, height: 26), pullsDown: false)
+        videoPopup.addItems(withTitles: [L10n.string("prefs.formatMOV"), L10n.string("prefs.formatMP4")])
+        videoPopup.target = self
+        videoPopup.action = #selector(videoFormatChanged(_:))
+        videoPopup.selectItem(at: preferencesStore.videoFormat == "mp4" ? 1 : 0)
+        videoPopup.toolTip = L10n.string("prefs.tooltipMP4")
+        content.addSubview(videoPopup)
 
         y -= 40
 
@@ -327,6 +365,21 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
 
     @objc private func groupByAppToggled(_ sender: NSButton) {
         preferencesStore.groupByApp = sender.state == .on
+        onFolderChanged?()
+    }
+
+    @objc private func separatePhotoVideoToggled(_ sender: NSButton) {
+        preferencesStore.separatePhotoVideo = sender.state == .on
+        onFolderChanged?()
+    }
+
+    @objc private func photoFormatChanged(_ sender: NSPopUpButton) {
+        preferencesStore.photoFormat = sender.indexOfSelectedItem == 1 ? "jpeg" : "png"
+        onFolderChanged?()
+    }
+
+    @objc private func videoFormatChanged(_ sender: NSPopUpButton) {
+        preferencesStore.videoFormat = sender.indexOfSelectedItem == 1 ? "mp4" : "mov"
         onFolderChanged?()
     }
 
