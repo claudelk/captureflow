@@ -24,13 +24,13 @@ struct SmartScreenShotApp {
             alert.messageText = L10n.string("alert.welcomeTitle")
             alert.informativeText = L10n.string("alert.welcomeBody")
             alert.alertStyle = .informational
-            alert.addButton(withTitle: L10n.string("alert.welcomeChooseFolder"))
             alert.addButton(withTitle: L10n.string("alert.welcomeUseDefault"))
+            alert.addButton(withTitle: L10n.string("alert.welcomeChooseFolder"))
             alert.icon = NSImage(named: NSImage.applicationIconName)
 
             let response = alert.runModal()
 
-            if response == .alertFirstButtonReturn {
+            if response == .alertSecondButtonReturn {
                 // User wants to pick a folder
                 let panel = NSOpenPanel()
                 panel.canChooseDirectories = true
