@@ -1,0 +1,54 @@
+/* StatusBarController — Menu */
+"menu.disable" = "Desactivar";
+"menu.enable" = "Activar";
+"menu.reanalyze" = "Re-analizar última captura";
+"menu.batchRename" = "Renombrar capturas por lote…";
+"menu.openFolder" = "Abrir carpeta de capturas";
+"menu.preferences" = "Preferencias…";
+"menu.quit" = "Salir de SmartScreenShot";
+"menu.accessibility" = "SmartScreenShot";
+"menu.accessibilityWorking" = "SmartScreenShot — procesando";
+
+/* StatusBarController — Batch Rename Dialog */
+"dialog.selectScreenshots" = "Selecciona las capturas a renombrar";
+"dialog.rename" = "Renombrar";
+
+/* PreferencesWindow */
+"prefs.title" = "Preferencias de SmartScreenShot";
+"prefs.saveScreenshotsTo" = "Guardar capturas en:";
+"prefs.namingMode" = "Modo de nombre:";
+"prefs.groupByApp" = "Agrupar capturas por aplicación activa";
+"prefs.launchAtLogin" = "Iniciar al arrancar";
+"prefs.browserCapture" = "Capturar URL del navegador en el nombre (experimental)";
+"prefs.globalHotkey" = "Atajo global para renombrar";
+"prefs.choose" = "Elegir…";
+"prefs.reset" = "Restablecer";
+"prefs.standard" = "Estándar";
+"prefs.enhanced" = "Mejorado (Apple Intelligence)";
+"prefs.enhancedUnavailable" = "Mejorado (Apple Intelligence) — No disponible";
+"prefs.advanced" = "Avanzado (IA en dispositivo) — Próximamente";
+"prefs.select" = "Seleccionar";
+"prefs.chooseMessage" = "Elige dónde se guardarán y organizarán las capturas";
+"prefs.language" = "Idioma:";
+"prefs.folderPrefix" = "Prefijo de carpeta:";
+"prefs.folderPrefixDefault" = "Por defecto";
+"prefs.folderPrefixCustom" = "Personalizado:";
+"prefs.support" = "Soporte:";
+"prefs.copyEmail" = "Copiar email";
+"prefs.sendEmail" = "Enviar email";
+"prefs.copied" = "¡Copiado!";
+
+/* AppEntry — Accessibility Alert */
+"alert.accessibilityTitle" = "Permiso de accesibilidad (opcional)";
+"alert.accessibilityBody" = "SmartScreenShot funciona mejor con acceso de Accesibilidad — detecta los atajos de captura para identificar la aplicación activa.\n\nSin él, las capturas se renombran automáticamente, pero el contexto de la aplicación puede ser menos preciso.\n\nOtorga acceso en Ajustes del Sistema › Privacidad y Seguridad › Accesibilidad para la mejor experiencia.";
+"alert.openSettings" = "Abrir Ajustes";
+"alert.continueWithout" = "Continuar sin";
+
+/* AppEntry — First Launch (MAS) */
+"alert.selectFolder" = "SmartScreenShot necesita acceso a tu carpeta de capturas.\nSelecciona la carpeta donde macOS guarda las capturas (normalmente el Escritorio).";
+
+/* Language Change */
+"alert.restartTitle" = "Reinicio requerido";
+"alert.restartBody" = "Reinicia SmartScreenShot para aplicar el nuevo idioma.";
+"alert.restartNow" = "Reiniciar ahora";
+"alert.restartLater" = "Más tarde";

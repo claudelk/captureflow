@@ -11,12 +11,15 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
     private let preferencesStore: PreferencesStore
     private let launchAgent = LaunchAtLogin()
     private var folderLabel: NSTextField?
+    private var customPrefixField: NSTextField?
     /// Called when the screenshot folder changes so the pipeline can restart.
     var onFolderChanged: (() -> Void)?
     #if !MAS
     /// Called when the hotkey enabled state changes so the pipeline can restart the monitor.
     var onHotkeyChanged: (() -> Void)?
     #endif
+
+    private static let supportEmail = "support@atalaku.studio"
 
     init(preferencesStore: PreferencesStore) {
         self.preferencesStore = preferencesStore
@@ -31,9 +34,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         }
 
         #if MAS
-        let windowHeight: CGFloat = 280
+        let windowHeight: CGFloat = 480
         #else
-        let windowHeight: CGFloat = 360
+        let windowHeight: CGFloat = 560
         #endif
 
         let w = NSWindow(
@@ -42,7 +45,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        w.title = "SmartScreenShot Preferences"
+        w.title = L10n.string("prefs.title")
         w.center()
         w.delegate = self
         w.isReleasedWhenClosed = false
@@ -51,13 +54,13 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         content.autoresizingMask = [.width, .height]
 
         #if MAS
-        var y: CGFloat = 235
+        var y: CGFloat = 435
         #else
-        var y: CGFloat = 315
+        var y: CGFloat = 515
         #endif
 
         // --- Screenshot Folder ---
-        content.addSubview(makeLabel("Save screenshots to:", at: y))
+        content.addSubview(makeLabel(L10n.string("prefs.saveScreenshotsTo"), at: y))
 
         let folderPath = NSTextField(labelWithString: preferencesStore.screenshotFolder.path)
         folderPath.frame = NSRect(x: 160, y: y, width: 200, height: 20)
@@ -67,13 +70,12 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         self.folderLabel = folderPath
         content.addSubview(folderPath)
 
-        let chooseButton = NSButton(title: "Choose\u{2026}", target: self, action: #selector(chooseFolder(_:)))
+        let chooseButton = NSButton(title: L10n.string("prefs.choose"), target: self, action: #selector(chooseFolder(_:)))
         chooseButton.bezelStyle = .rounded
         chooseButton.frame = NSRect(x: 365, y: y - 4, width: 75, height: 28)
         content.addSubview(chooseButton)
 
-        // Reset button — only shown when a custom folder is set
-        let resetButton = NSButton(title: "Reset", target: self, action: #selector(resetFolder(_:)))
+        let resetButton = NSButton(title: L10n.string("prefs.reset"), target: self, action: #selector(resetFolder(_:)))
         resetButton.bezelStyle = .rounded
         resetButton.frame = NSRect(x: 365, y: y - 30, width: 75, height: 24)
         resetButton.font = .systemFont(ofSize: 11)
@@ -84,28 +86,25 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         y -= 65
 
         // --- Naming Mode ---
-        content.addSubview(makeLabel("Naming Mode:", at: y))
+        content.addSubview(makeLabel(L10n.string("prefs.namingMode"), at: y))
 
         let tierPopup = NSPopUpButton(frame: NSRect(x: 160, y: y - 2, width: 230, height: 26), pullsDown: false)
-        tierPopup.addItems(withTitles: ["Standard"])
+        tierPopup.addItems(withTitles: [L10n.string("prefs.standard")])
         tierPopup.target = self
         tierPopup.action = #selector(namerTierChanged(_:))
 
-        // Tier 2: Enhanced (Apple Intelligence)
         let tier2Available = Self.isFoundationModelsAvailable()
-
         let tier2Title = tier2Available
-            ? "Enhanced (Apple Intelligence)"
-            : "Enhanced (Apple Intelligence) \u{2014} Unavailable"
+            ? L10n.string("prefs.enhanced")
+            : L10n.string("prefs.enhancedUnavailable")
         let tier2 = NSMenuItem(title: tier2Title, action: nil, keyEquivalent: "")
         tier2.isEnabled = tier2Available
         tierPopup.menu?.addItem(tier2)
 
-        let tier3 = NSMenuItem(title: "Advanced (On-device AI) \u{2014} Coming Soon", action: nil, keyEquivalent: "")
+        let tier3 = NSMenuItem(title: L10n.string("prefs.advanced"), action: nil, keyEquivalent: "")
         tier3.isEnabled = false
         tierPopup.menu?.addItem(tier3)
 
-        // Select current tier — "auto" selects Enhanced if available
         let currentTier = preferencesStore.namerTier
         if tier2Available && (currentTier == "auto" || currentTier == "foundation-models") {
             tierPopup.selectItem(at: 1)
@@ -118,7 +117,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
 
         // --- Group by App ---
         let groupByAppCheckbox = NSButton(
-            checkboxWithTitle: "Group screenshots by frontmost app",
+            checkboxWithTitle: L10n.string("prefs.groupByApp"),
             target: self,
             action: #selector(groupByAppToggled(_:))
         )
@@ -128,9 +127,73 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
 
         y -= 40
 
+        // --- Language ---
+        content.addSubview(makeLabel(L10n.string("prefs.language"), at: y))
+
+        let languageNames = ["System Default", "English", "Fran\u{00E7}ais", "Espa\u{00F1}ol", "Portugu\u{00EA}s", "Kiswahili"]
+        let languageCodes = ["system", "en", "fr", "es", "pt", "sw"]
+
+        let langPopup = NSPopUpButton(frame: NSRect(x: 160, y: y - 2, width: 200, height: 26), pullsDown: false)
+        langPopup.addItems(withTitles: languageNames)
+        langPopup.target = self
+        langPopup.action = #selector(languageChanged(_:))
+
+        let currentLang = preferencesStore.appLanguage
+        if let idx = languageCodes.firstIndex(of: currentLang) {
+            langPopup.selectItem(at: idx)
+        } else {
+            langPopup.selectItem(at: 0)
+        }
+        content.addSubview(langPopup)
+
+        y -= 45
+
+        // --- Folder Prefix ---
+        content.addSubview(makeLabel(L10n.string("prefs.folderPrefix"), at: y))
+
+        let langCode = L10n.activeLanguageCode
+        let defaultPrefix = FolderPrefix.prefix(for: langCode)
+        let today = {
+            let c = Calendar.current.dateComponents([.year, .month, .day], from: Date())
+            return String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)
+        }()
+
+        let defaultRadio = NSButton(radioButtonWithTitle: "\(L10n.string("prefs.folderPrefixDefault")) (\(defaultPrefix)_\(today))",
+                                     target: self, action: #selector(folderPrefixChanged(_:)))
+        defaultRadio.frame.origin = NSPoint(x: 160, y: y)
+        defaultRadio.tag = 400
+        defaultRadio.state = preferencesStore.useCustomFolderPrefix ? .off : .on
+        content.addSubview(defaultRadio)
+
+        y -= 25
+
+        let customRadio = NSButton(radioButtonWithTitle: L10n.string("prefs.folderPrefixCustom"),
+                                    target: self, action: #selector(folderPrefixChanged(_:)))
+        customRadio.frame.origin = NSPoint(x: 160, y: y)
+        customRadio.tag = 401
+        customRadio.state = preferencesStore.useCustomFolderPrefix ? .on : .off
+        content.addSubview(customRadio)
+
+        let prefixField = NSTextField(frame: NSRect(x: 260, y: y - 2, width: 100, height: 22))
+        prefixField.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        prefixField.stringValue = preferencesStore.customFolderPrefix
+        prefixField.placeholderString = "my-prefix"
+        prefixField.isEnabled = preferencesStore.useCustomFolderPrefix
+        prefixField.target = self
+        prefixField.action = #selector(customPrefixEdited(_:))
+        self.customPrefixField = prefixField
+        content.addSubview(prefixField)
+
+        let suffixLabel = makeLabel("_\(today)", at: y, size: 11, color: .secondaryLabelColor)
+        suffixLabel.frame.origin.x = 365
+        suffixLabel.frame.size.width = 90
+        content.addSubview(suffixLabel)
+
+        y -= 40
+
         // --- Launch at Login ---
         let launchCheckbox = NSButton(
-            checkboxWithTitle: "Launch at login",
+            checkboxWithTitle: L10n.string("prefs.launchAtLogin"),
             target: self,
             action: #selector(launchAtLoginToggled(_:))
         )
@@ -143,7 +206,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
 
         // --- Browser URL Capture (stubbed) ---
         let browserCheckbox = NSButton(
-            checkboxWithTitle: "Capture browser URL in filename (experimental)",
+            checkboxWithTitle: L10n.string("prefs.browserCapture"),
             target: self,
             action: #selector(browserCaptureToggled(_:))
         )
@@ -156,7 +219,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
 
         // --- Global Hotkey ---
         let hotkeyCheckbox = NSButton(
-            checkboxWithTitle: "Global hotkey for rename",
+            checkboxWithTitle: L10n.string("prefs.globalHotkey"),
             target: self,
             action: #selector(hotkeyToggled(_:))
         )
@@ -174,6 +237,25 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         hotkeyLabel.frame.size.width = 120
         content.addSubview(hotkeyLabel)
         #endif
+
+        // --- Support / Feedback ---
+        let supportLabel = makeLabel("\(L10n.string("prefs.support")) \(Self.supportEmail)", at: 50, size: 11, color: .secondaryLabelColor)
+        supportLabel.frame = NSRect(x: 20, y: 50, width: 280, height: 16)
+        supportLabel.isSelectable = true
+        content.addSubview(supportLabel)
+
+        let copyButton = NSButton(title: L10n.string("prefs.copyEmail"), target: self, action: #selector(copyEmail(_:)))
+        copyButton.bezelStyle = .rounded
+        copyButton.font = .systemFont(ofSize: 11)
+        copyButton.frame = NSRect(x: 300, y: 46, width: 75, height: 24)
+        copyButton.tag = 500
+        content.addSubview(copyButton)
+
+        let sendButton = NSButton(title: L10n.string("prefs.sendEmail"), target: self, action: #selector(sendEmail(_:)))
+        sendButton.bezelStyle = .rounded
+        sendButton.font = .systemFont(ofSize: 11)
+        sendButton.frame = NSRect(x: 378, y: 46, width: 75, height: 24)
+        content.addSubview(sendButton)
 
         // --- Version ---
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
@@ -201,8 +283,8 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         panel.canChooseFiles = false
         panel.canCreateDirectories = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Select"
-        panel.message = "Choose where screenshots will be saved and organized"
+        panel.prompt = L10n.string("prefs.select")
+        panel.message = L10n.string("prefs.chooseMessage")
         panel.directoryURL = preferencesStore.screenshotFolder
 
         guard panel.runModal() == .OK, let url = panel.url else { return }
@@ -213,7 +295,6 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         #endif
         folderLabel?.stringValue = url.path
 
-        // Show the Reset button
         if let resetButton = window?.contentView?.viewWithTag(200) as? NSButton {
             resetButton.isHidden = false
         }
@@ -233,12 +314,57 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
         let index = sender.indexOfSelectedItem
         let tier = index < tiers.count ? tiers[index] : "vision-only"
         preferencesStore.namerTier = tier
-        onFolderChanged?()  // Restart pipeline to pick up the new namer
+        onFolderChanged?()
     }
 
     @objc private func groupByAppToggled(_ sender: NSButton) {
         preferencesStore.groupByApp = sender.state == .on
-        onFolderChanged?()  // Restart pipeline to pick up the new groupByApp setting
+        onFolderChanged?()
+    }
+
+    @objc private func languageChanged(_ sender: NSPopUpButton) {
+        let codes = ["system", "en", "fr", "es", "pt", "sw"]
+        let index = sender.indexOfSelectedItem
+        let code = index < codes.count ? codes[index] : "system"
+        preferencesStore.appLanguage = code
+
+        let alert = NSAlert()
+        alert.messageText = L10n.string("alert.restartTitle")
+        alert.informativeText = L10n.string("alert.restartBody")
+        alert.addButton(withTitle: L10n.string("alert.restartNow"))
+        alert.addButton(withTitle: L10n.string("alert.restartLater"))
+        alert.alertStyle = .informational
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            // Relaunch the app
+            let url = Bundle.main.bundleURL
+            let task = Process()
+            task.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+            task.arguments = [url.path]
+            try? task.run()
+            NSApplication.shared.terminate(nil)
+        }
+    }
+
+    @objc private func folderPrefixChanged(_ sender: NSButton) {
+        let useCustom = sender.tag == 401
+        preferencesStore.useCustomFolderPrefix = useCustom
+        customPrefixField?.isEnabled = useCustom
+
+        // Update radio button states
+        if let defaultRadio = window?.contentView?.viewWithTag(400) as? NSButton {
+            defaultRadio.state = useCustom ? .off : .on
+        }
+        if let customRadio = window?.contentView?.viewWithTag(401) as? NSButton {
+            customRadio.state = useCustom ? .on : .off
+        }
+
+        onFolderChanged?()
+    }
+
+    @objc private func customPrefixEdited(_ sender: NSTextField) {
+        preferencesStore.customFolderPrefix = sender.stringValue
+        onFolderChanged?()
     }
 
     @objc private func launchAtLoginToggled(_ sender: NSButton) {
@@ -262,9 +388,23 @@ final class PreferencesWindow: NSObject, NSWindowDelegate {
     }
     #endif
 
+    @objc private func copyEmail(_ sender: NSButton) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(Self.supportEmail, forType: .string)
+        sender.title = L10n.string("prefs.copied")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            sender.title = L10n.string("prefs.copyEmail")
+        }
+    }
+
+    @objc private func sendEmail(_ sender: NSButton) {
+        if let url = URL(string: "mailto:\(Self.supportEmail)?subject=SmartScreenShot%20Feedback") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     // MARK: - Availability
 
-    /// Check if Foundation Models (Apple Intelligence) is available at runtime.
     private static func isFoundationModelsAvailable() -> Bool {
         #if canImport(FoundationModels)
         if #available(macOS 26.0, *) {

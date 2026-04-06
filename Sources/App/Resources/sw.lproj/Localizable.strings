@@ -1,0 +1,54 @@
+/* StatusBarController — Menu */
+"menu.disable" = "Zima";
+"menu.enable" = "Washa";
+"menu.reanalyze" = "Changanua tena picha ya mwisho";
+"menu.batchRename" = "Badilisha majina kwa wingi…";
+"menu.openFolder" = "Fungua folda ya picha";
+"menu.preferences" = "Mapendeleo…";
+"menu.quit" = "Ondoka SmartScreenShot";
+"menu.accessibility" = "SmartScreenShot";
+"menu.accessibilityWorking" = "SmartScreenShot — inafanya kazi";
+
+/* StatusBarController — Batch Rename Dialog */
+"dialog.selectScreenshots" = "Chagua picha za kubadilisha jina";
+"dialog.rename" = "Badilisha jina";
+
+/* PreferencesWindow */
+"prefs.title" = "Mapendeleo ya SmartScreenShot";
+"prefs.saveScreenshotsTo" = "Hifadhi picha katika:";
+"prefs.namingMode" = "Hali ya majina:";
+"prefs.groupByApp" = "Pangilia picha kwa programu inayotumika";
+"prefs.launchAtLogin" = "Anzisha unapoingia";
+"prefs.browserCapture" = "Nasa URL ya kivinjari katika jina (majaribio)";
+"prefs.globalHotkey" = "Njia ya mkato ya kubadilisha jina";
+"prefs.choose" = "Chagua…";
+"prefs.reset" = "Weka upya";
+"prefs.standard" = "Kawaida";
+"prefs.enhanced" = "Bora (Apple Intelligence)";
+"prefs.enhancedUnavailable" = "Bora (Apple Intelligence) — Haipatikani";
+"prefs.advanced" = "Ya juu (AI kwenye kifaa) — Inakuja hivi karibuni";
+"prefs.select" = "Chagua";
+"prefs.chooseMessage" = "Chagua mahali ambapo picha zitahifadhiwa na kupangwa";
+"prefs.language" = "Lugha:";
+"prefs.folderPrefix" = "Kiambishi cha folda:";
+"prefs.folderPrefixDefault" = "Chaguo-msingi";
+"prefs.folderPrefixCustom" = "Maalum:";
+"prefs.support" = "Msaada:";
+"prefs.copyEmail" = "Nakili barua pepe";
+"prefs.sendEmail" = "Tuma barua pepe";
+"prefs.copied" = "Imenakiliwa!";
+
+/* AppEntry — Accessibility Alert */
+"alert.accessibilityTitle" = "Ruhusa ya Ufikiaji (si lazima)";
+"alert.accessibilityBody" = "SmartScreenShot inafanya kazi vizuri na ruhusa ya Ufikiaji — inagundua vitufe vya picha ili kutambua programu inayotumika.\n\nBila hiyo, picha bado zinabadilishwa jina moja kwa moja, lakini muktadha wa programu unaweza kuwa si sahihi sana.\n\nToa ruhusa katika Mipangilio ya Mfumo › Faragha na Usalama › Ufikiaji kwa matumizi bora.";
+"alert.openSettings" = "Fungua Mipangilio";
+"alert.continueWithout" = "Endelea bila";
+
+/* AppEntry — First Launch (MAS) */
+"alert.selectFolder" = "SmartScreenShot inahitaji ruhusa ya kufikia folda yako ya picha.\nChagua folda ambapo macOS inahifadhi picha (kawaida Desktop).";
+
+/* Language Change */
+"alert.restartTitle" = "Kuanzisha upya kunahitajika";
+"alert.restartBody" = "Anzisha upya SmartScreenShot ili kutumia lugha mpya.";
+"alert.restartNow" = "Anzisha upya sasa";
+"alert.restartLater" = "Baadaye";

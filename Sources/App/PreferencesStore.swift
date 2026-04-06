@@ -36,6 +36,9 @@ final class PreferencesStore {
         static let hotkeyKeyCode = "hotkeyKeyCode"
         static let hotkeyModifiers = "hotkeyModifiers"
         static let screenshotFolderBookmark = "screenshotFolderBookmark"
+        static let appLanguage = "appLanguage"
+        static let useCustomFolderPrefix = "useCustomFolderPrefix"
+        static let customFolderPrefix = "customFolderPrefix"
     }
 
     // MARK: - Properties
@@ -63,6 +66,23 @@ final class PreferencesStore {
     var groupByApp: Bool {
         get { defaults.bool(forKey: Keys.groupByApp) }
         set { defaults.set(newValue, forKey: Keys.groupByApp) }
+    }
+
+    // MARK: - Language & Folder Prefix
+
+    var appLanguage: String {
+        get { defaults.string(forKey: Keys.appLanguage) ?? "system" }
+        set { defaults.set(newValue, forKey: Keys.appLanguage) }
+    }
+
+    var useCustomFolderPrefix: Bool {
+        get { defaults.bool(forKey: Keys.useCustomFolderPrefix) }
+        set { defaults.set(newValue, forKey: Keys.useCustomFolderPrefix) }
+    }
+
+    var customFolderPrefix: String {
+        get { defaults.string(forKey: Keys.customFolderPrefix) ?? "" }
+        set { defaults.set(newValue, forKey: Keys.customFolderPrefix) }
     }
 
     // MARK: - Hotkey

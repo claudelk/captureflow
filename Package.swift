@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "SmartScreenShot",
+    defaultLocalization: "en",
     platforms: [.macOS(.v13)],
     targets: [
         // Naming brain CLI — test slugs against any image
@@ -21,7 +22,8 @@ let package = Package(
         .executableTarget(
             name: "SmartScreenShot",
             dependencies: ["SmartScreenShotCore"],
-            path: "Sources/App"
+            path: "Sources/App",
+            resources: [.process("Resources")]
         ),
         // Shared library — all naming tiers, daemon types, slug logic
         .target(

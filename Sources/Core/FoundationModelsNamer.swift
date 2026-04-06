@@ -17,8 +17,11 @@ import FoundationModels
 public final class FoundationModelsNamer: ImageNamer {
 
     private let visionNamer = VisionOnlyNamer()
+    private let languageCode: String
 
-    public init() {}
+    public init(languageCode: String = "en") {
+        self.languageCode = languageCode
+    }
 
     // MARK: - ImageNamer
 
@@ -46,19 +49,27 @@ public final class FoundationModelsNamer: ImageNamer {
 
         // Step 4: Generate name via LLM
         do {
+            var instructions = """
+                You generate short filenames for screenshots. Rules: \
+                1. Output 2-5 lowercase words describing the MAIN TOPIC. \
+                2. For web pages: use the page/article TITLE, not body paragraphs. \
+                3. For apps: describe the main view or screen. \
+                4. Ignore navigation bars, tab bars, sidebars, and small UI labels. \
+                5. Ignore text inside nested phone mockups or embedded images. \
+                6. No file extension, no special characters. \
+                Example: a screenshot of an Apple Newsroom article about iPhones \
+                should be named "apple-iphone-announcement", NOT after text \
+                visible inside phone mockup images on the page.
+                """
+
+            // Add language directive for non-English
+            if languageCode != "en" {
+                let langName = ["fr": "French", "es": "Spanish", "pt": "Portuguese", "sw": "Swahili"][languageCode] ?? "English"
+                instructions += " Generate the filename words in \(langName)."
+            }
+
             let session = LanguageModelSession(
-                instructions: Instructions("""
-                    You generate short filenames for screenshots. Rules: \
-                    1. Output 2-5 lowercase words describing the MAIN TOPIC. \
-                    2. For web pages: use the page/article TITLE, not body paragraphs. \
-                    3. For apps: describe the main view or screen. \
-                    4. Ignore navigation bars, tab bars, sidebars, and small UI labels. \
-                    5. Ignore text inside nested phone mockups or embedded images. \
-                    6. No file extension, no special characters. \
-                    Example: a screenshot of an Apple Newsroom article about iPhones \
-                    should be named "apple-iphone-announcement", NOT after text \
-                    visible inside phone mockup images on the page.
-                    """)
+                instructions: Instructions(instructions)
             )
 
             let response = try await session.respond(

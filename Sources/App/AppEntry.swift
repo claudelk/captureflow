@@ -19,20 +19,11 @@ struct SmartScreenShotApp {
                 defaults?.set(true, forKey: "accessibilityPromptShown")
 
                 let alert = NSAlert()
-                alert.messageText = "Accessibility Permission (Optional)"
-                alert.informativeText = """
-                SmartScreenShot works best with Accessibility access — it \
-                detects screenshot keystrokes to capture which app you're in.
-
-                Without it, screenshots are still auto-renamed, but app \
-                context may be less accurate.
-
-                Grant access in System Settings \u{203A} Privacy & Security \
-                \u{203A} Accessibility for the best experience.
-                """
+                alert.messageText = L10n.string("alert.accessibilityTitle")
+                alert.informativeText = L10n.string("alert.accessibilityBody")
                 alert.alertStyle = .informational
-                alert.addButton(withTitle: "Open Settings")
-                alert.addButton(withTitle: "Continue Without")
+                alert.addButton(withTitle: L10n.string("alert.openSettings"))
+                alert.addButton(withTitle: L10n.string("alert.continueWithout"))
 
                 let response = alert.runModal()
                 if response == .alertFirstButtonReturn {
@@ -56,8 +47,8 @@ struct SmartScreenShotApp {
             panel.canChooseFiles = false
             panel.canCreateDirectories = false
             panel.allowsMultipleSelection = false
-            panel.prompt = "Select"
-            panel.message = "SmartScreenShot needs access to your screenshot folder.\nSelect the folder where macOS saves screenshots (usually Desktop)."
+            panel.prompt = L10n.string("prefs.select")
+            panel.message = L10n.string("alert.selectFolder")
             panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
                 .appendingPathComponent("Desktop")
 

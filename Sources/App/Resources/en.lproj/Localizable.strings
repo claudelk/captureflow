@@ -1,0 +1,54 @@
+/* StatusBarController — Menu */
+"menu.disable" = "Disable";
+"menu.enable" = "Enable";
+"menu.reanalyze" = "Re-analyze Last Screenshot";
+"menu.batchRename" = "Batch Rename Screenshots…";
+"menu.openFolder" = "Open Screenshot Folder";
+"menu.preferences" = "Preferences…";
+"menu.quit" = "Quit SmartScreenShot";
+"menu.accessibility" = "SmartScreenShot";
+"menu.accessibilityWorking" = "SmartScreenShot — working";
+
+/* StatusBarController — Batch Rename Dialog */
+"dialog.selectScreenshots" = "Select screenshots to rename";
+"dialog.rename" = "Rename";
+
+/* PreferencesWindow */
+"prefs.title" = "SmartScreenShot Preferences";
+"prefs.saveScreenshotsTo" = "Save screenshots to:";
+"prefs.namingMode" = "Naming Mode:";
+"prefs.groupByApp" = "Group screenshots by frontmost app";
+"prefs.launchAtLogin" = "Launch at login";
+"prefs.browserCapture" = "Capture browser URL in filename (experimental)";
+"prefs.globalHotkey" = "Global hotkey for rename";
+"prefs.choose" = "Choose…";
+"prefs.reset" = "Reset";
+"prefs.standard" = "Standard";
+"prefs.enhanced" = "Enhanced (Apple Intelligence)";
+"prefs.enhancedUnavailable" = "Enhanced (Apple Intelligence) — Unavailable";
+"prefs.advanced" = "Advanced (On-device AI) — Coming Soon";
+"prefs.select" = "Select";
+"prefs.chooseMessage" = "Choose where screenshots will be saved and organized";
+"prefs.language" = "Language:";
+"prefs.folderPrefix" = "Folder prefix:";
+"prefs.folderPrefixDefault" = "Default";
+"prefs.folderPrefixCustom" = "Custom:";
+"prefs.support" = "Support:";
+"prefs.copyEmail" = "Copy Email";
+"prefs.sendEmail" = "Send Email";
+"prefs.copied" = "Copied!";
+
+/* AppEntry — Accessibility Alert */
+"alert.accessibilityTitle" = "Accessibility Permission (Optional)";
+"alert.accessibilityBody" = "SmartScreenShot works best with Accessibility access — it detects screenshot keystrokes to capture which app you're in.\n\nWithout it, screenshots are still auto-renamed, but app context may be less accurate.\n\nGrant access in System Settings › Privacy & Security › Accessibility for the best experience.";
+"alert.openSettings" = "Open Settings";
+"alert.continueWithout" = "Continue Without";
+
+/* AppEntry — First Launch (MAS) */
+"alert.selectFolder" = "SmartScreenShot needs access to your screenshot folder.\nSelect the folder where macOS saves screenshots (usually Desktop).";
+
+/* Language Change */
+"alert.restartTitle" = "Restart Required";
+"alert.restartBody" = "Restart SmartScreenShot to apply the new language.";
+"alert.restartNow" = "Restart Now";
+"alert.restartLater" = "Later";

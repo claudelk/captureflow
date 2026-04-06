@@ -15,14 +15,16 @@ public actor RenameEngine {
     /// When true, folders are named after the frontmost app (e.g. `safari_2026-03-28`).
     /// When false (default), all screenshots go into `screenshot_2026-03-28`.
     private let groupByApp: Bool
+    private let folderPrefix: String
     /// Paths processed in the last few seconds — prevents double-processing
     /// when FSEvents fires multiple times for the same file.
     private var recentlyProcessed: [String: Date] = [:]
 
-    public init(namer: any ImageNamer, store: CaptureContextStore, groupByApp: Bool = false) {
+    public init(namer: any ImageNamer, store: CaptureContextStore, groupByApp: Bool = false, folderPrefix: String = "screenshot") {
         self.namer = namer
         self.store = store
         self.groupByApp = groupByApp
+        self.folderPrefix = folderPrefix
     }
 
     // MARK: - Public
@@ -73,7 +75,7 @@ public actor RenameEngine {
         // Build destination
         let appSlug    = (groupByApp && !context.appName.isEmpty)
                          ? SlugGenerator.slug(from: context.appName)
-                         : "screenshot"
+                         : folderPrefix
         let folderName = "\(appSlug)_\(dateString(from: fileDate))"
         let baseName   = "\(contentSlug)_\(timeString(from: fileDate))"
 
@@ -126,7 +128,7 @@ public actor RenameEngine {
         }
 
         let fileDate = creationDate(of: url)
-        let folderName = "screenshot_\(dateString(from: fileDate))"
+        let folderName = "\(folderPrefix)_\(dateString(from: fileDate))"
         let baseName   = "\(contentSlug)_\(timeString(from: fileDate))"
 
         let baseDir    = url.deletingLastPathComponent()

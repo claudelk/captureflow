@@ -33,22 +33,29 @@ final class PipelineController {
     init(preferencesStore: PreferencesStore) {
         self.preferencesStore = preferencesStore
         self.store = CaptureContextStore()
-        self.namer = Self.createNamer(tier: preferencesStore.namerTier)
-        self.engine = RenameEngine(namer: namer, store: store, groupByApp: preferencesStore.groupByApp)
+        let langCode = L10n.activeLanguageCode
+        self.namer = Self.createNamer(tier: preferencesStore.namerTier, languageCode: langCode)
+        let prefix = Self.resolvePrefix(preferencesStore: preferencesStore, languageCode: langCode)
+        self.engine = RenameEngine(namer: namer, store: store, groupByApp: preferencesStore.groupByApp, folderPrefix: prefix)
     }
 
     /// Factory: creates the best available namer.
-    /// "auto" (default): picks the best available tier.
-    /// "vision-only": forces Standard (Tier 1).
-    /// "foundation-models": forces Enhanced (Tier 2), falls back if unavailable.
-    static func createNamer(tier: String) -> any ImageNamer {
+    static func createNamer(tier: String, languageCode: String = "en") -> any ImageNamer {
         let wantsLLM = (tier == "auto" || tier == "foundation-models")
         #if canImport(FoundationModels)
         if wantsLLM, #available(macOS 26.0, *), SystemLanguageModel.default.isAvailable {
-            return FoundationModelsNamer()
+            return FoundationModelsNamer(languageCode: languageCode)
         }
         #endif
         return VisionOnlyNamer()
+    }
+
+    /// Resolves the folder prefix from user preference or localized default.
+    static func resolvePrefix(preferencesStore: PreferencesStore, languageCode: String) -> String {
+        if preferencesStore.useCustomFolderPrefix, !preferencesStore.customFolderPrefix.isEmpty {
+            return SlugGenerator.slug(from: preferencesStore.customFolderPrefix)
+        }
+        return FolderPrefix.prefix(for: languageCode)
     }
 
     // MARK: - Lifecycle

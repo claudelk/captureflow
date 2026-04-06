@@ -28,7 +28,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         if let button = statusItem.button {
             button.image = NSImage(
                 systemSymbolName: "camera.viewfinder",
-                accessibilityDescription: "SmartScreenShot"
+                accessibilityDescription: L10n.string("menu.accessibility")
             )
         }
     }
@@ -39,7 +39,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         // Enable / Disable
         let toggleItem = NSMenuItem(
-            title: pipeline.state == .running ? "Disable" : "Enable",
+            title: pipeline.state == .running ? L10n.string("menu.disable") : L10n.string("menu.enable"),
             action: #selector(togglePipeline(_:)),
             keyEquivalent: ""
         )
@@ -50,7 +50,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         // Re-analyze last
         let reanalyzeItem = NSMenuItem(
-            title: "Re-analyze Last Screenshot",
+            title: L10n.string("menu.reanalyze"),
             action: #selector(reanalyzeLast(_:)),
             keyEquivalent: ""
         )
@@ -60,7 +60,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         // Batch rename
         let batchItem = NSMenuItem(
-            title: "Batch Rename Screenshots\u{2026}",
+            title: L10n.string("menu.batchRename"),
             action: #selector(batchRename(_:)),
             keyEquivalent: ""
         )
@@ -69,7 +69,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         // Open folder
         let openFolderItem = NSMenuItem(
-            title: "Open Screenshot Folder",
+            title: L10n.string("menu.openFolder"),
             action: #selector(openFolder(_:)),
             keyEquivalent: ""
         )
@@ -80,7 +80,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         // Preferences
         let prefsItem = NSMenuItem(
-            title: "Preferences\u{2026}",
+            title: L10n.string("menu.preferences"),
             action: #selector(openPreferences(_:)),
             keyEquivalent: ","
         )
@@ -91,7 +91,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
         // Quit
         let quitItem = NSMenuItem(
-            title: "Quit SmartScreenShot",
+            title: L10n.string("menu.quit"),
             action: #selector(quitApp(_:)),
             keyEquivalent: "q"
         )
@@ -106,7 +106,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     func menuWillOpen(_ menu: NSMenu) {
         // Update toggle title
         if let toggleItem = menu.items.first {
-            toggleItem.title = pipeline.state == .running ? "Disable" : "Enable"
+            toggleItem.title = pipeline.state == .running ? L10n.string("menu.disable") : L10n.string("menu.enable")
         }
         // Update re-analyze availability
         if let reanalyzeItem = menu.item(withTag: 100) {
@@ -136,13 +136,11 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         guard let button = statusItem.button else { return }
         let original = button.image
 
-        // Switch to a filled variant
         button.image = NSImage(
             systemSymbolName: "camera.viewfinder.fill",
-            accessibilityDescription: "SmartScreenShot — working"
+            accessibilityDescription: L10n.string("menu.accessibilityWorking")
         )
 
-        // Revert after 0.6s
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             button.image = original
         }
@@ -154,16 +152,18 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = true
         panel.allowedContentTypes = [.png, .jpeg]
-        panel.message = "Select screenshots to rename"
-        panel.prompt = "Rename"
+        panel.message = L10n.string("dialog.selectScreenshots")
+        panel.prompt = L10n.string("dialog.rename")
         panel.directoryURL = pipeline.screenshotFolder
 
         guard panel.runModal() == .OK, !panel.urls.isEmpty else { return }
 
         let urls = panel.urls
-        let namer = Self.createNamer(tier: preferencesStore.namerTier)
+        let langCode = L10n.activeLanguageCode
+        let namer = PipelineController.createNamer(tier: preferencesStore.namerTier, languageCode: langCode)
+        let prefix = PipelineController.resolvePrefix(preferencesStore: preferencesStore, languageCode: langCode)
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: namer, store: store)
+        let engine = RenameEngine(namer: namer, store: store, folderPrefix: prefix)
 
         Task {
             var succeeded = 0
@@ -200,17 +200,5 @@ final class StatusBarController: NSObject, NSMenuDelegate {
 
     @objc private func quitApp(_ sender: NSMenuItem) {
         NSApplication.shared.terminate(nil)
-    }
-
-    /// Factory: creates the appropriate namer based on the tier preference.
-    private static func createNamer(tier: String) -> any ImageNamer {
-        if tier == "foundation-models" {
-            #if canImport(FoundationModels)
-            if #available(macOS 26.0, *) {
-                return FoundationModelsNamer()
-            }
-            #endif
-        }
-        return VisionOnlyNamer()
     }
 }
