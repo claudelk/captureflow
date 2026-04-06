@@ -1,4 +1,5 @@
 import AppKit
+import UserNotifications
 
 @main
 struct SmartScreenShotApp {
@@ -87,6 +88,21 @@ struct SmartScreenShotApp {
 
         if prefsStore.isEnabled {
             pipeline.start()
+        }
+
+        // Notify user the app is running
+        let center = UNUserNotificationCenter.current()
+        center.requestAuthorization(options: [.alert]) { granted, _ in
+            guard granted else { return }
+            let content = UNMutableNotificationContent()
+            content.title = "SmartScreenShot"
+            content.body = L10n.string("alert.appReady")
+            let request = UNNotificationRequest(
+                identifier: "appReady",
+                content: content,
+                trigger: nil
+            )
+            center.add(request)
         }
 
         print("SmartScreenShot ready.")

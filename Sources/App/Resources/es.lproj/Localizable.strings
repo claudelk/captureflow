@@ -38,6 +38,9 @@
 "prefs.sendEmail" = "Enviar email";
 "prefs.copied" = "¡Copiado!";
 
+/* AppEntry — App Ready */
+"alert.appReady" = "SmartScreenShot está activo. Tus capturas se renombrarán automáticamente.";
+
 /* AppEntry — Welcome (First Launch) */
 "alert.welcomeTitle" = "Bienvenido a SmartScreenShot";
 "alert.welcomeBody" = "SmartScreenShot renombra automáticamente tus capturas de pantalla con nombres significativos.\n\nPara empezar, necesita acceso a la carpeta donde macOS guarda las capturas (normalmente el Escritorio).\n\nPuedes elegir una carpeta específica o usar la ubicación predeterminada.";

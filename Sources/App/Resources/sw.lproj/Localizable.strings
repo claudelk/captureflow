@@ -38,6 +38,9 @@
 "prefs.sendEmail" = "Tuma barua pepe";
 "prefs.copied" = "Imenakiliwa!";
 
+/* AppEntry — App Ready */
+"alert.appReady" = "SmartScreenShot inafanya kazi. Picha zako za skrini zitabadilishwa jina moja kwa moja.";
+
 /* AppEntry — Welcome (First Launch) */
 "alert.welcomeTitle" = "Karibu SmartScreenShot";
 "alert.welcomeBody" = "SmartScreenShot inabadilisha jina za picha zako za skrini kwa majina yenye maana.\n\nIli kuanza, inahitaji ruhusa ya kufikia folda ambapo macOS inahifadhi picha (kawaida Desktop).\n\nUnaweza kuchagua folda maalum au kutumia mahali pa kawaida.";

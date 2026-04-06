@@ -38,6 +38,9 @@
 "prefs.sendEmail" = "Send Email";
 "prefs.copied" = "Copied!";
 
+/* AppEntry — App Ready */
+"alert.appReady" = "SmartScreenShot is running. Your screenshots will be automatically renamed.";
+
 /* AppEntry — Welcome (First Launch) */
 "alert.welcomeTitle" = "Welcome to SmartScreenShot";
 "alert.welcomeBody" = "SmartScreenShot automatically renames your screenshots with meaningful names.\n\nTo get started, it needs access to the folder where macOS saves screenshots (usually your Desktop).\n\nYou can choose a specific folder or use the default location.";
