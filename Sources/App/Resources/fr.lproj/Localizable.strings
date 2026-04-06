@@ -37,9 +37,9 @@
 "prefs.separatePhotoVideo" = "Séparer photos et vidéos dans des sous-dossiers";
 "prefs.photoFormat" = "Format photo :";
 "prefs.videoFormat" = "Format vidéo :";
-"prefs.formatPNG" = "PNG (original)";
+"prefs.formatPNG" = "PNG (par défaut)";
 "prefs.formatJPEG" = "JPEG (plus petit)";
-"prefs.formatMOV" = "MOV (original)";
+"prefs.formatMOV" = "MOV (par défaut)";
 "prefs.formatMP4" = "MP4 (compatible)";
 "prefs.tooltipJPEG" = "Les fichiers JPEG sont plus petits mais utilisent une compression avec perte";
 "prefs.tooltipMP4" = "MP4 est plus compatible mais la conversion prend quelques secondes";

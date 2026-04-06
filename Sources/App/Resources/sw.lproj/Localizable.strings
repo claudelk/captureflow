@@ -37,9 +37,9 @@
 "prefs.separatePhotoVideo" = "Tenganisha picha na video katika folda ndogo";
 "prefs.photoFormat" = "Muundo wa picha:";
 "prefs.videoFormat" = "Muundo wa video:";
-"prefs.formatPNG" = "PNG (asili)";
+"prefs.formatPNG" = "PNG (chaguo-msingi)";
 "prefs.formatJPEG" = "JPEG (ndogo zaidi)";
-"prefs.formatMOV" = "MOV (asili)";
+"prefs.formatMOV" = "MOV (chaguo-msingi)";
 "prefs.formatMP4" = "MP4 (inaoana zaidi)";
 "prefs.tooltipJPEG" = "Faili za JPEG ni ndogo lakini zinatumia ukandamizaji wenye hasara";
 "prefs.tooltipMP4" = "MP4 inaoana zaidi lakini ubadilishaji unachukua sekunde chache";
