@@ -1,11 +1,13 @@
 /* StatusBarController — Menu */
-"menu.captureFullScreen" = "Capturar tela inteira";
-"menu.captureArea" = "Capturar área selecionada";
-"menu.recordScreen" = "Gravar tela";
+"menu.howToCapture" = "Como capturar";
+"menu.hintFullScreen" = "Tela inteira";
+"menu.hintArea" = "Área selecionada";
+"menu.hintToolbar" = "Barra de captura";
 "menu.reanalyze" = "Re-analisar última captura";
 "menu.batchRename" = "Renomear capturas em lote…";
 "menu.openFolder" = "Abrir pasta de capturas";
 "menu.preferences" = "Preferências…";
+"menu.organize" = "Organizar capturas existentes\U2026";
 "menu.quit" = "Sair do CaptureFlow";
 "menu.accessibility" = "CaptureFlow";
 "menu.accessibilityWorking" = "CaptureFlow — processando";
@@ -31,9 +33,12 @@
 "prefs.select" = "Selecionar";
 "prefs.chooseMessage" = "Escolha onde as capturas serão salvas e organizadas";
 "prefs.language" = "Idioma:";
-"prefs.folderPrefix" = "Prefixo da pasta:";
-"prefs.folderPrefixDefault" = "Padrão";
-"prefs.folderPrefixCustom" = "Personalizado:";
+"prefs.rootFolder" = "Pasta raiz:";
+"prefs.rootFolderDefault" = "Padr\U00E3o";
+"prefs.rootFolderCustom" = "Personalizado:";
+"prefs.dateFormat" = "Formato de data:";
+"prefs.dateFormatDefault" = "Padr\U00E3o do sistema";
+"prefs.dateFormatCustom" = "Personalizado:";
 "prefs.separatePhotoVideo" = "Separar fotos e vídeos em subpastas";
 "prefs.photoFormat" = "Formato de foto:";
 "prefs.videoFormat" = "Formato de vídeo:";
@@ -43,6 +48,9 @@
 "prefs.formatMP4" = "MP4 (compatível)";
 "prefs.tooltipJPEG" = "Arquivos JPEG são menores mas usam compressão com perda";
 "prefs.tooltipMP4" = "MP4 é mais compatível mas a conversão leva alguns segundos";
+"prefs.permissions" = "Permiss\U00F5es:";
+"prefs.grantAccessibility" = "Acessibilidade (contexto de app)";
+"prefs.grantScreenRecording" = "Grava\U00E7\U00E3o de tela (capturas)";
 "prefs.support" = "Suporte:";
 "prefs.copyEmail" = "Copiar email";
 "prefs.sendEmail" = "Enviar email";
@@ -67,6 +75,14 @@
 "alert.selectFolder" = "CaptureFlow precisa de acesso à sua pasta de capturas.\nSelecione a pasta onde o macOS salva as capturas (geralmente a Área de Trabalho).";
 
 /* Language Change */
+"migration.title" = "Organizar capturas existentes?";
+"migration.body" = "%d capturas e %d pastas encontradas que podem ser organizadas na sua pasta de Capturas de tela.";
+"migration.organize" = "Organizar";
+"migration.skip" = "Pular";
+"migration.progress" = "Organizando captura %d de %d\U2026";
+"migration.complete" = "Migra\U00E7\U00E3o conclu\U00EDda. %d arquivos organizados.";
+"migration.nothingFound" = "Nenhuma captura n\U00E3o organizada encontrada na sua pasta de capturas.";
+
 "alert.restartTitle" = "Reinício necessário";
 "alert.restartBody" = "Reinicie o CaptureFlow para aplicar o novo idioma.";
 "alert.restartNow" = "Reiniciar agora";

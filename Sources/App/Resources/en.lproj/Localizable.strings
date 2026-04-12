@@ -1,11 +1,13 @@
 /* StatusBarController — Menu */
-"menu.captureFullScreen" = "Capture Full Screen";
-"menu.captureArea" = "Capture Selected Area";
-"menu.recordScreen" = "Record Screen";
+"menu.howToCapture" = "How to Capture";
+"menu.hintFullScreen" = "Full Screen";
+"menu.hintArea" = "Selected Area";
+"menu.hintToolbar" = "Screenshot Toolbar";
 "menu.reanalyze" = "Re-analyze Last Screenshot";
 "menu.batchRename" = "Batch Rename Screenshots…";
 "menu.openFolder" = "Open Screenshot Folder";
 "menu.preferences" = "Preferences…";
+"menu.organize" = "Organize Existing Captures\U2026";
 "menu.quit" = "Quit CaptureFlow";
 "menu.accessibility" = "CaptureFlow";
 "menu.accessibilityWorking" = "CaptureFlow — working";
@@ -31,9 +33,12 @@
 "prefs.select" = "Select";
 "prefs.chooseMessage" = "Choose where screenshots will be saved and organized";
 "prefs.language" = "Language:";
-"prefs.folderPrefix" = "Folder prefix:";
-"prefs.folderPrefixDefault" = "Default";
-"prefs.folderPrefixCustom" = "Custom:";
+"prefs.rootFolder" = "Root folder:";
+"prefs.rootFolderDefault" = "Default";
+"prefs.rootFolderCustom" = "Custom:";
+"prefs.dateFormat" = "Date format:";
+"prefs.dateFormatDefault" = "System default";
+"prefs.dateFormatCustom" = "Custom:";
 "prefs.separatePhotoVideo" = "Separate photos and videos into subfolders";
 "prefs.photoFormat" = "Photo format:";
 "prefs.videoFormat" = "Video format:";
@@ -43,6 +48,9 @@
 "prefs.formatMP4" = "MP4 (compatible)";
 "prefs.tooltipJPEG" = "JPEG files are smaller but use lossy compression";
 "prefs.tooltipMP4" = "MP4 is more compatible but conversion takes a few seconds";
+"prefs.permissions" = "Permissions:";
+"prefs.grantAccessibility" = "Accessibility (for app context)";
+"prefs.grantScreenRecording" = "Screen Recording (for captures)";
 "prefs.support" = "Support:";
 "prefs.copyEmail" = "Copy Email";
 "prefs.sendEmail" = "Send Email";
@@ -65,6 +73,15 @@
 
 /* AppEntry — First Launch (MAS) */
 "alert.selectFolder" = "CaptureFlow needs access to your screenshot folder.\nSelect the folder where macOS saves screenshots (usually Desktop).";
+
+/* Migration */
+"migration.title" = "Organize Existing Screenshots?";
+"migration.body" = "Found %d screenshots and %d folders that can be organized into your Screenshots folder.";
+"migration.organize" = "Organize";
+"migration.skip" = "Skip";
+"migration.progress" = "Organizing screenshot %d of %d\U2026";
+"migration.complete" = "Migration complete. %d files organized.";
+"migration.nothingFound" = "No unorganized screenshots found in your screenshot folder.";
 
 /* Language Change */
 "alert.restartTitle" = "Restart Required";

@@ -9,6 +9,13 @@ private struct MockNamer: ImageNamer {
     }
 }
 
+/// Deterministic date formatter for tests (always yyyy-MM-dd).
+private func testDateFormatter() -> DateFormatter {
+    let df = DateFormatter()
+    df.dateFormat = "yyyy-MM-dd"
+    return df
+}
+
 final class RenameEngineTests: XCTestCase {
 
     private var tempDir: URL!
@@ -46,67 +53,128 @@ final class RenameEngineTests: XCTestCase {
         return url
     }
 
-    // MARK: - groupByApp Flag
-
-    func testGroupByAppFalseUsesScreenshotFolder() async {
-        let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test-content"), store: store, groupByApp: false)
-
-        // Store a context with an app name
-        let now = Date()
-        store.store(CaptureContext(
-            appName: "Safari",
-            appBundleID: "com.apple.Safari",
-            browserURL: nil,
-            capturedAt: now
-        ))
-
-        let testFile = createTestPNG()
-        let result = await engine.process(newFile: testFile, detectedAt: now)
-
-        XCTAssertNotNil(result)
-        // Folder should be "screenshot_YYYY-MM-DD", NOT "safari_YYYY-MM-DD"
-        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "Expected 'screenshot_' prefix, got: \(parentFolder)")
-        XCTAssertFalse(parentFolder.hasPrefix("safari_"), "Should NOT use app name when groupByApp is false")
+    /// Helper: extract path components relative to tempDir.
+    /// e.g. tempDir/Screenshots/2026-04-07/images/test_12-00-00.png → ["Screenshots", "2026-04-07", "images", "test_12-00-00.png"]
+    private func relativeComponents(of url: URL) -> [String] {
+        let full = url.standardizedFileURL.path
+        let base = tempDir.standardizedFileURL.path
+        guard full.hasPrefix(base) else { return [] }
+        let relative = String(full.dropFirst(base.count))
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return relative.components(separatedBy: "/")
     }
 
-    func testGroupByAppTrueUsesAppFolder() async {
-        let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test-content"), store: store, groupByApp: true)
+    // MARK: - Root Folder
 
-        let now = Date()
-        store.store(CaptureContext(
-            appName: "Safari",
-            appBundleID: "com.apple.Safari",
-            browserURL: nil,
-            capturedAt: now
-        ))
+    func testRootFolderIsCreated() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", separateSubfolders: true,
+            dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
-        let result = await engine.process(newFile: testFile, detectedAt: now)
+        let result = await engine.process(newFile: testFile, detectedAt: Date())
 
         XCTAssertNotNil(result)
-        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertTrue(parentFolder.hasPrefix("safari_"), "Expected 'safari_' prefix, got: \(parentFolder)")
+        let comps = relativeComponents(of: result!)
+        XCTAssertEqual(comps[0], "Screenshots", "Root folder should be 'Screenshots'")
     }
 
-    func testGroupByAppTrueWithEmptyContextUsesScreenshot() async {
+    func testEmptyRootFolderFallsBackToLegacy() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test-content"), store: store, groupByApp: true)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "", dateFormatter: testDateFormatter()
+        )
 
-        // No context stored — will use .empty
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
 
         XCTAssertNotNil(result)
         let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "Empty context should default to 'screenshot_'")
+        XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "Legacy mode: expected 'screenshot_' prefix, got: \(parentFolder)")
+    }
+
+    // MARK: - groupByApp Flag
+
+    func testGroupByAppFalseUsesDateOnlyFolder() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test-content"), store: store,
+            groupByApp: false, rootFolderName: "Screenshots",
+            separateSubfolders: true, dateFormatter: testDateFormatter()
+        )
+
+        let now = Date()
+        store.store(CaptureContext(
+            appName: "Safari",
+            appBundleID: "com.apple.Safari",
+            browserURL: nil,
+            capturedAt: now
+        ))
+
+        let testFile = createTestPNG()
+        let result = await engine.process(newFile: testFile, detectedAt: now)
+
+        XCTAssertNotNil(result)
+        let comps = relativeComponents(of: result!)
+        // Screenshots / YYYY-MM-DD / images / file.png
+        XCTAssertEqual(comps[0], "Screenshots")
+        XCTAssertFalse(comps[1].contains("safari"), "groupByApp=false should NOT include app name, got: \(comps[1])")
+        XCTAssertEqual(comps[2], "images")
+    }
+
+    func testGroupByAppTrueUsesAppFolder() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test-content"), store: store,
+            groupByApp: true, rootFolderName: "Screenshots",
+            separateSubfolders: true, dateFormatter: testDateFormatter()
+        )
+
+        let now = Date()
+        store.store(CaptureContext(
+            appName: "Safari",
+            appBundleID: "com.apple.Safari",
+            browserURL: nil,
+            capturedAt: now
+        ))
+
+        let testFile = createTestPNG()
+        let result = await engine.process(newFile: testFile, detectedAt: now)
+
+        XCTAssertNotNil(result)
+        let comps = relativeComponents(of: result!)
+        XCTAssertEqual(comps[0], "Screenshots")
+        XCTAssertTrue(comps[1].hasPrefix("safari_"), "Expected 'safari_' prefix, got: \(comps[1])")
+    }
+
+    func testGroupByAppTrueWithEmptyContextUsesDateOnly() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test-content"), store: store,
+            groupByApp: true, rootFolderName: "Screenshots",
+            dateFormatter: testDateFormatter()
+        )
+
+        let testFile = createTestPNG()
+        let result = await engine.process(newFile: testFile, detectedAt: Date())
+
+        XCTAssertNotNil(result)
+        let comps = relativeComponents(of: result!)
+        XCTAssertEqual(comps[0], "Screenshots")
+        // Empty context → no app slug, just date
+        XCTAssertFalse(comps[1].contains("_") && !comps[1].hasPrefix("screenshot"), "Empty context with root folder should use date-only folder")
     }
 
     func testGroupByAppDefaultIsFalse() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test-content"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test-content"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let now = Date()
         store.store(CaptureContext(
@@ -120,27 +188,35 @@ final class RenameEngineTests: XCTestCase {
         let result = await engine.process(newFile: testFile, detectedAt: now)
 
         XCTAssertNotNil(result)
-        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "Default groupByApp should be false")
+        let comps = relativeComponents(of: result!)
+        XCTAssertFalse(comps[1].contains("xcode"), "Default groupByApp should be false")
     }
 
     // MARK: - processManual
 
-    func testProcessManualAlwaysUsesScreenshotFolder() async {
+    func testProcessManualUsesRootFolder() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "manual-test"), store: store, groupByApp: true)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "manual-test"), store: store,
+            groupByApp: true, rootFolderName: "Screenshots",
+            dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.processManual(file: testFile)
 
         XCTAssertNotNil(result)
-        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "processManual should always use 'screenshot_'")
+        let comps = relativeComponents(of: result!)
+        XCTAssertEqual(comps[0], "Screenshots")
     }
 
-    func testCustomFolderPrefix() async {
+    func testCustomFolderPrefixLegacy() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, folderPrefix: "capture-d-ecran")
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            folderPrefix: "capture-d-ecran", rootFolderName: "",
+            dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
@@ -152,7 +228,11 @@ final class RenameEngineTests: XCTestCase {
 
     func testProcessManualUsesCustomPrefix() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, folderPrefix: "mes-captures")
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            folderPrefix: "mes-captures", rootFolderName: "",
+            dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.processManual(file: testFile)
@@ -166,23 +246,27 @@ final class RenameEngineTests: XCTestCase {
 
     func testVideoFileSkipsNamerAndRenames() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "should-not-use"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "should-not-use"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
-        // Create a fake .mov file
         let movURL = tempDir.appendingPathComponent("Screen Recording 2026-04-06.mov")
         try! Data(count: 100).write(to: movURL)
 
         let result = await engine.process(newFile: movURL, detectedAt: Date())
 
         XCTAssertNotNil(result)
-        // Should use "recording" slug, not the namer
         XCTAssertTrue(result!.lastPathComponent.contains("recording"), "Video should use 'recording' slug, got: \(result!.lastPathComponent)")
         XCTAssertEqual(result!.pathExtension, "mov")
     }
 
     func testVideoWithAppContextUsesAppName() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "ignored"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "ignored"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let now = Date()
         store.store(CaptureContext(
@@ -205,19 +289,27 @@ final class RenameEngineTests: XCTestCase {
 
     func testSeparateSubfoldersPhoto() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, separateSubfolders: true)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", separateSubfolders: true,
+            dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
 
         XCTAssertNotNil(result)
         let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertEqual(parentFolder, "photos", "Photo should go in /photos/ subfolder")
+        XCTAssertEqual(parentFolder, "images", "Photo should go in /images/ subfolder")
     }
 
     func testSeparateSubfoldersVideo() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, separateSubfolders: true)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", separateSubfolders: true,
+            dateFormatter: testDateFormatter()
+        )
 
         let movURL = tempDir.appendingPathComponent("Screen Recording.mov")
         try! Data(count: 100).write(to: movURL)
@@ -231,21 +323,31 @@ final class RenameEngineTests: XCTestCase {
 
     func testNoSubfoldersWhenDisabled() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, separateSubfolders: false)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", separateSubfolders: false,
+            dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
 
         XCTAssertNotNil(result)
-        let parentFolder = result!.deletingLastPathComponent().lastPathComponent
-        XCTAssertTrue(parentFolder.hasPrefix("screenshot_"), "Without subfolders, parent should be date folder, got: \(parentFolder)")
+        let comps = relativeComponents(of: result!)
+        // Screenshots / YYYY-MM-DD / file.png (no images/ subfolder)
+        XCTAssertEqual(comps[0], "Screenshots")
+        XCTAssertEqual(comps.count, 3, "Without subfolders, should be 3 components: root/date/file")
     }
 
     // MARK: - Format Conversion
 
     func testPhotoFormatJPEG() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, photoFormat: .jpeg)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter(),
+            photoFormat: .jpeg
+        )
 
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
@@ -256,7 +358,11 @@ final class RenameEngineTests: XCTestCase {
 
     func testGroupByAppWithSubfolders() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store, groupByApp: true, separateSubfolders: true)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            groupByApp: true, rootFolderName: "Screenshots",
+            separateSubfolders: true, dateFormatter: testDateFormatter()
+        )
 
         let now = Date()
         store.store(CaptureContext(
@@ -270,16 +376,19 @@ final class RenameEngineTests: XCTestCase {
         let result = await engine.process(newFile: testFile, detectedAt: now)
 
         XCTAssertNotNil(result)
-        // Path should be: safari_YYYY-MM-DD/photos/test_HH-mm-ss.png
-        let photosFolder = result!.deletingLastPathComponent().lastPathComponent
-        let dateFolder = result!.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
-        XCTAssertEqual(photosFolder, "photos")
-        XCTAssertTrue(dateFolder.hasPrefix("safari_"), "Expected safari_ prefix, got: \(dateFolder)")
+        let comps = relativeComponents(of: result!)
+        // Screenshots / safari_YYYY-MM-DD / images / test_HH-mm-ss.png
+        XCTAssertEqual(comps[0], "Screenshots")
+        XCTAssertTrue(comps[1].hasPrefix("safari_"), "Expected safari_ prefix, got: \(comps[1])")
+        XCTAssertEqual(comps[2], "images")
     }
 
     func testProcessManualNonexistentFile() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let fakeURL = tempDir.appendingPathComponent("nonexistent.png")
         let result = await engine.processManual(file: fakeURL)
@@ -291,7 +400,10 @@ final class RenameEngineTests: XCTestCase {
 
     func testRenamedFileContainsContentSlug() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "my-cool-screenshot"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "my-cool-screenshot"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
@@ -302,7 +414,10 @@ final class RenameEngineTests: XCTestCase {
 
     func testRenamedFileIsPNG() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let result = await engine.process(newFile: testFile, detectedAt: Date())
@@ -313,7 +428,10 @@ final class RenameEngineTests: XCTestCase {
 
     func testOriginalFileIsMovedNotCopied() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let originalPath = testFile.path
@@ -321,9 +439,7 @@ final class RenameEngineTests: XCTestCase {
         let result = await engine.process(newFile: testFile, detectedAt: Date())
 
         XCTAssertNotNil(result)
-        // Original file should no longer exist
         XCTAssertFalse(FileManager.default.fileExists(atPath: originalPath))
-        // Destination should exist
         XCTAssertTrue(FileManager.default.fileExists(atPath: result!.path))
     }
 
@@ -331,19 +447,19 @@ final class RenameEngineTests: XCTestCase {
 
     func testDebounceSkipsDuplicateFile() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "test"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
         let testFile = createTestPNG()
         let now = Date()
 
-        // First call succeeds
         let result1 = await engine.process(newFile: testFile, detectedAt: now)
         XCTAssertNotNil(result1)
 
-        // Create another file at the same path (simulating double FSEvents)
         _ = createTestPNG() // same name, recreates the file
         let result2 = await engine.process(newFile: testFile, detectedAt: now)
-        // Should be nil — debounced
         XCTAssertNil(result2)
     }
 
@@ -351,23 +467,90 @@ final class RenameEngineTests: XCTestCase {
 
     func testCollisionHandling() async {
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: MockNamer(slug: "same-name"), store: store)
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "same-name"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: testDateFormatter()
+        )
 
-        // Process two different files that produce the same slug
         let file1 = createTestPNG(named: "Screenshot 1.png")
         let result1 = await engine.process(newFile: file1, detectedAt: Date())
         XCTAssertNotNil(result1)
 
-        // Wait past the debounce window
         try? await Task.sleep(nanoseconds: 3_500_000_000)
 
         let file2 = createTestPNG(named: "Screenshot 2.png")
         let result2 = await engine.process(newFile: file2, detectedAt: Date())
         XCTAssertNotNil(result2)
 
-        // Both should exist at different paths
         XCTAssertNotEqual(result1!.path, result2!.path)
         XCTAssertTrue(FileManager.default.fileExists(atPath: result1!.path))
         XCTAssertTrue(FileManager.default.fileExists(atPath: result2!.path))
+    }
+
+    // MARK: - Date Format
+
+    func testLocaleDateFormatUsedInFolderName() async {
+        let store = CaptureContextStore()
+        let frenchFormatter = DateFormatter()
+        frenchFormatter.dateFormat = "dd-MM-yyyy"
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: frenchFormatter
+        )
+
+        let testFile = createTestPNG()
+        let result = await engine.process(newFile: testFile, detectedAt: Date())
+
+        XCTAssertNotNil(result)
+        let comps = relativeComponents(of: result!)
+        // The date folder should be in dd-MM-yyyy format
+        let dateFolder = comps[1]
+        let parts = dateFolder.components(separatedBy: "-")
+        XCTAssertEqual(parts.count, 3, "Date should have 3 parts: \(dateFolder)")
+        // dd should be 01-31, MM should be 01-12
+        XCTAssertTrue((Int(parts[0]) ?? 0) <= 31, "First part should be day")
+    }
+
+    func testSlashesInDateFormatAreSanitized() async {
+        let store = CaptureContextStore()
+        let slashFormatter = DateFormatter()
+        slashFormatter.dateFormat = "MM/dd/yyyy"
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Screenshots", dateFormatter: slashFormatter
+        )
+
+        let testFile = createTestPNG()
+        let result = await engine.process(newFile: testFile, detectedAt: Date())
+
+        XCTAssertNotNil(result)
+        let comps = relativeComponents(of: result!)
+        let dateFolder = comps[1]
+        XCTAssertFalse(dateFolder.contains("/"), "Slashes should be replaced with hyphens: \(dateFolder)")
+        XCTAssertTrue(dateFolder.contains("-"), "Should contain hyphens: \(dateFolder)")
+    }
+
+    // MARK: - Localized Subfolder Names
+
+    func testLocalizedSubfolderNames() async {
+        let store = CaptureContextStore()
+        let engine = RenameEngine(
+            namer: MockNamer(slug: "test"), store: store,
+            rootFolderName: "Captures d\u{2019}\u{00E9}cran",
+            separateSubfolders: true,
+            imagesFolderName: "images",
+            videosFolderName: "vid\u{00E9}os",
+            dateFormatter: testDateFormatter()
+        )
+
+        let movURL = tempDir.appendingPathComponent("Screen Recording.mov")
+        try! Data(count: 100).write(to: movURL)
+
+        let result = await engine.process(newFile: movURL, detectedAt: Date())
+
+        XCTAssertNotNil(result)
+        let comps = relativeComponents(of: result!)
+        XCTAssertEqual(comps[0], "Captures d\u{2019}\u{00E9}cran")
+        XCTAssertEqual(comps[2], "vid\u{00E9}os")
     }
 }

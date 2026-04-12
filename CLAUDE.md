@@ -30,6 +30,7 @@ instead of macOS's default "Screenshot 2026-03-29 at 1.19.49 PM" format.
 | `FoundationModelsNamer.swift` | Tier 2 namer: Vision OCR + Apple Intelligence LLM (`#if canImport(FoundationModels)`, macOS 26+) |
 | `CaptureContextStore.swift` | Lock-based ring buffer of keystroke contexts, synchronous store + nearest-match lookup |
 | `ScreenshotPreferences.swift` | Reads `com.apple.screencapture location` pref; falls back to `~/Desktop` |
+| `MigrationEngine.swift` | Scans for Apple-default-named files + legacy folders, organizes into root folder |
 | `KeystrokeTap.swift` | CGEventTap wrapper: listens for Cmd+Shift+3/4/5, captures frontmost app |
 | `ScreenshotWatcher.swift` | FSEvents wrapper: fires when a new PNG appears in the screenshot folder |
 | `RenameEngine.swift` | Actor: `process()` for auto-rename with context, `processManual()` for batch/manual rename without context |
@@ -90,6 +91,17 @@ instead of macOS's default "Screenshot 2026-03-29 at 1.19.49 PM" format.
 
 ## Output format
 
+```
+{screenshot-folder}/
+  {root-folder}/                  (default: "Screenshots", localized, configurable)
+    {locale-date}/                (system locale short date, e.g. "2026-04-07" or "07-04-2026")
+      images/                     (localized: "images", "imágenes", etc.)
+        {content-slug}_{HH-mm-ss}.png
+      videos/                     (localized: "videos", "vídeos", etc.)
+        {recording-slug}_{HH-mm-ss}.mov
+```
+
+Legacy mode (empty root folder name):
 ```
 {screenshot-folder}/
   {app-name-slug}_{YYYY-MM-DD}/

@@ -95,6 +95,23 @@ else
     echo "    Icon: SKIPPED (run Distribution/generate-icon.sh first)"
 fi
 
+# Copy resource bundle (localization strings)
+RESOURCE_BUNDLE=""
+for candidate in \
+    "${PROJECT_ROOT}/.build/release/${APP_NAME}_${APP_NAME}.bundle" \
+    "${PROJECT_ROOT}/.build/arm64-apple-macosx/release/${APP_NAME}_${APP_NAME}.bundle"; do
+    if [ -d "$candidate" ]; then
+        RESOURCE_BUNDLE="$candidate"
+        break
+    fi
+done
+if [ -n "$RESOURCE_BUNDLE" ]; then
+    cp -R "$RESOURCE_BUNDLE" "${APP_BUNDLE}/Contents/Resources/"
+    echo "    Resources: included"
+else
+    echo "    Resources: SKIPPED (no resource bundle found)"
+fi
+
 echo "    Bundle: $APP_BUNDLE"
 
 # --- Step 3: Code sign ---

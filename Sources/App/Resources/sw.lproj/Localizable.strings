@@ -1,11 +1,13 @@
 /* StatusBarController — Menu */
-"menu.captureFullScreen" = "Nasa skrini nzima";
-"menu.captureArea" = "Nasa eneo lililochaguliwa";
-"menu.recordScreen" = "Rekodi skrini";
+"menu.howToCapture" = "Jinsi ya kunasa";
+"menu.hintFullScreen" = "Skrini nzima";
+"menu.hintArea" = "Eneo lililochaguliwa";
+"menu.hintToolbar" = "Upau wa kunasa";
 "menu.reanalyze" = "Changanua tena picha ya mwisho";
 "menu.batchRename" = "Badilisha majina kwa wingi…";
 "menu.openFolder" = "Fungua folda ya picha";
 "menu.preferences" = "Mapendeleo…";
+"menu.organize" = "Panga picha za skrini zilizopo\U2026";
 "menu.quit" = "Ondoka CaptureFlow";
 "menu.accessibility" = "CaptureFlow";
 "menu.accessibilityWorking" = "CaptureFlow — inafanya kazi";
@@ -31,9 +33,12 @@
 "prefs.select" = "Chagua";
 "prefs.chooseMessage" = "Chagua mahali ambapo picha zitahifadhiwa na kupangwa";
 "prefs.language" = "Lugha:";
-"prefs.folderPrefix" = "Kiambishi cha folda:";
-"prefs.folderPrefixDefault" = "Chaguo-msingi";
-"prefs.folderPrefixCustom" = "Maalum:";
+"prefs.rootFolder" = "Folda kuu:";
+"prefs.rootFolderDefault" = "Chaguo-msingi";
+"prefs.rootFolderCustom" = "Maalum:";
+"prefs.dateFormat" = "Muundo wa tarehe:";
+"prefs.dateFormatDefault" = "Chaguo-msingi la mfumo";
+"prefs.dateFormatCustom" = "Maalum:";
 "prefs.separatePhotoVideo" = "Tenganisha picha na video katika folda ndogo";
 "prefs.photoFormat" = "Muundo wa picha:";
 "prefs.videoFormat" = "Muundo wa video:";
@@ -43,6 +48,9 @@
 "prefs.formatMP4" = "MP4 (inaoana zaidi)";
 "prefs.tooltipJPEG" = "Faili za JPEG ni ndogo lakini zinatumia ukandamizaji wenye hasara";
 "prefs.tooltipMP4" = "MP4 inaoana zaidi lakini ubadilishaji unachukua sekunde chache";
+"prefs.permissions" = "Ruhusa:";
+"prefs.grantAccessibility" = "Ufikiaji (muktadha wa programu)";
+"prefs.grantScreenRecording" = "Kurekodi skrini (kunasa)";
 "prefs.support" = "Msaada:";
 "prefs.copyEmail" = "Nakili barua pepe";
 "prefs.sendEmail" = "Tuma barua pepe";
@@ -67,6 +75,14 @@
 "alert.selectFolder" = "CaptureFlow inahitaji ruhusa ya kufikia folda yako ya picha.\nChagua folda ambapo macOS inahifadhi picha (kawaida Desktop).";
 
 /* Language Change */
+"migration.title" = "Panga picha za skrini zilizopo?";
+"migration.body" = "Picha %d na folda %d zimepatikana ambazo zinaweza kupangwa katika folda yako ya Picha za skrini.";
+"migration.organize" = "Panga";
+"migration.skip" = "Ruka";
+"migration.progress" = "Kupanga picha ya skrini %d kati ya %d\U2026";
+"migration.complete" = "Uhamishaji umekamilika. Faili %d zimepangwa.";
+"migration.nothingFound" = "Hakuna picha za skrini zisizopangwa zilizopatikana katika folda yako.";
+
 "alert.restartTitle" = "Kuanzisha upya kunahitajika";
 "alert.restartBody" = "Anzisha upya CaptureFlow ili kutumia lugha mpya.";
 "alert.restartNow" = "Anzisha upya sasa";

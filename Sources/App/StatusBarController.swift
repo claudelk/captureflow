@@ -5,7 +5,10 @@ import UniformTypeIdentifiers
 /// Manages the NSStatusItem and its dropdown menu.
 final class StatusBarController: NSObject, NSMenuDelegate {
 
-    private let statusItem: NSStatusItem
+    let statusItem: NSStatusItem
+
+    /// Public access to the status bar button for icon updates (e.g. migration progress).
+    var statusButton: NSStatusBarButton? { statusItem.button }
     private let pipeline: PipelineController
     private let preferencesStore: PreferencesStore
     private var preferencesWindow: PreferencesWindow?
@@ -38,38 +41,30 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
 
-        // Capture Full Screen — ⇧⌘3
-        let fullScreenItem = NSMenuItem(
-            title: L10n.string("menu.captureFullScreen"),
-            action: #selector(captureFullScreen(_:)),
-            keyEquivalent: ""
-        )
-        fullScreenItem.target = self
-        fullScreenItem.keyEquivalentModifierMask = [.shift, .command]
-        fullScreenItem.keyEquivalent = "3"
-        menu.addItem(fullScreenItem)
+        // How to Capture — submenu showing native shortcuts
+        let captureSubmenu = NSMenu()
 
-        // Capture Selected Area — ⇧⌘4
-        let areaItem = NSMenuItem(
-            title: L10n.string("menu.captureArea"),
-            action: #selector(captureArea(_:)),
-            keyEquivalent: ""
-        )
-        areaItem.target = self
-        areaItem.keyEquivalentModifierMask = [.shift, .command]
-        areaItem.keyEquivalent = "4"
-        menu.addItem(areaItem)
+        let fullScreenHint = NSMenuItem(title: L10n.string("menu.hintFullScreen"), action: nil, keyEquivalent: "")
+        fullScreenHint.keyEquivalentModifierMask = [.shift, .command]
+        fullScreenHint.keyEquivalent = "3"
+        fullScreenHint.isEnabled = false
+        captureSubmenu.addItem(fullScreenHint)
 
-        // Record Screen — ⇧⌘5
-        let recordItem = NSMenuItem(
-            title: L10n.string("menu.recordScreen"),
-            action: #selector(recordScreen(_:)),
-            keyEquivalent: ""
-        )
-        recordItem.target = self
-        recordItem.keyEquivalentModifierMask = [.shift, .command]
-        recordItem.keyEquivalent = "5"
-        menu.addItem(recordItem)
+        let areaHint = NSMenuItem(title: L10n.string("menu.hintArea"), action: nil, keyEquivalent: "")
+        areaHint.keyEquivalentModifierMask = [.shift, .command]
+        areaHint.keyEquivalent = "4"
+        areaHint.isEnabled = false
+        captureSubmenu.addItem(areaHint)
+
+        let toolbarHint = NSMenuItem(title: L10n.string("menu.hintToolbar"), action: nil, keyEquivalent: "")
+        toolbarHint.keyEquivalentModifierMask = [.shift, .command]
+        toolbarHint.keyEquivalent = "5"
+        toolbarHint.isEnabled = false
+        captureSubmenu.addItem(toolbarHint)
+
+        let captureParent = NSMenuItem(title: L10n.string("menu.howToCapture"), action: nil, keyEquivalent: "")
+        captureParent.submenu = captureSubmenu
+        menu.addItem(captureParent)
 
         menu.addItem(.separator())
 
@@ -91,6 +86,15 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         )
         batchItem.target = self
         menu.addItem(batchItem)
+
+        // Organize existing screenshots
+        let organizeItem = NSMenuItem(
+            title: L10n.string("menu.organize"),
+            action: #selector(organizeExisting(_:)),
+            keyEquivalent: ""
+        )
+        organizeItem.target = self
+        menu.addItem(organizeItem)
 
         // Open folder
         let openFolderItem = NSMenuItem(
@@ -135,37 +139,12 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         }
     }
 
+    /// Programmatically open the status bar menu.
+    func showMenu() {
+        statusItem.button?.performClick(nil)
+    }
+
     // MARK: - Actions
-
-    @objc private func captureFullScreen(_ sender: NSMenuItem) {
-        statusItem.menu?.cancelTracking()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let task = Process()
-            task.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-            task.arguments = ["-x"] // silent full screen
-            try? task.run()
-        }
-    }
-
-    @objc private func captureArea(_ sender: NSMenuItem) {
-        statusItem.menu?.cancelTracking()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let task = Process()
-            task.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-            task.arguments = ["-ix"] // interactive selection, silent
-            try? task.run()
-        }
-    }
-
-    @objc private func recordScreen(_ sender: NSMenuItem) {
-        statusItem.menu?.cancelTracking()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            let task = Process()
-            task.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
-            task.arguments = ["-v"] // video recording mode
-            try? task.run()
-        }
-    }
 
     @objc private func reanalyzeLast(_ sender: NSMenuItem) {
         flashIcon()
@@ -175,6 +154,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     /// Blink the menu bar icon 3 times on startup so the user knows it's running.
     private func blinkOnStartup() {
         guard let button = statusItem.button else { return }
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { return }
         let original = button.image
         var count = 0
 
@@ -190,6 +170,7 @@ final class StatusBarController: NSObject, NSMenuDelegate {
     /// Briefly flash the menu bar icon to indicate activity.
     private func flashIcon() {
         guard let button = statusItem.button else { return }
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { return }
         let original = button.image
 
         button.image = NSImage(
@@ -218,8 +199,16 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         let langCode = L10n.activeLanguageCode
         let namer = PipelineController.createNamer(tier: preferencesStore.namerTier, languageCode: langCode)
         let prefix = PipelineController.resolvePrefix(preferencesStore: preferencesStore, languageCode: langCode)
+        let rootFolder = PipelineController.resolveRootFolderName(preferencesStore: preferencesStore, languageCode: langCode)
+        let dateFormatter = PipelineController.resolveDateFormatter(preferencesStore: preferencesStore)
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: namer, store: store, folderPrefix: prefix)
+        let engine = RenameEngine(
+            namer: namer, store: store, folderPrefix: prefix,
+            rootFolderName: rootFolder, separateSubfolders: preferencesStore.separatePhotoVideo,
+            imagesFolderName: FolderPrefix.imagesFolderName(for: langCode),
+            videosFolderName: FolderPrefix.videosFolderName(for: langCode),
+            dateFormatter: dateFormatter
+        )
 
         Task {
             var succeeded = 0
@@ -232,8 +221,66 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         }
     }
 
+    @objc private func organizeExisting(_ sender: NSMenuItem) {
+        let langCode = L10n.activeLanguageCode
+        let rootFolderName = PipelineController.resolveRootFolderName(preferencesStore: preferencesStore, languageCode: langCode)
+        let screenshotFolder = pipeline.screenshotFolder
+        let scanResult = MigrationEngine.scan(in: screenshotFolder, rootFolderName: rootFolderName)
+
+        guard !scanResult.isEmpty else {
+            let alert = NSAlert()
+            alert.messageText = L10n.string("migration.title")
+            alert.informativeText = L10n.string("migration.nothingFound")
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            alert.runModal()
+            return
+        }
+
+        let alert = NSAlert()
+        alert.messageText = L10n.string("migration.title")
+        alert.informativeText = String(
+            format: L10n.string("migration.body"),
+            scanResult.fileCount, scanResult.folderCount
+        )
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: L10n.string("migration.organize"))
+        alert.addButton(withTitle: L10n.string("migration.skip"))
+        alert.icon = NSImage(named: NSImage.applicationIconName)
+
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        let dateFormatter = PipelineController.resolveDateFormatter(preferencesStore: preferencesStore)
+        let namer = PipelineController.createNamer(tier: preferencesStore.namerTier, languageCode: langCode)
+
+        Task {
+            let organized = await MigrationEngine.run(
+                scanResult: scanResult,
+                screenshotFolder: screenshotFolder,
+                rootFolderName: rootFolderName,
+                dateFormatter: dateFormatter,
+                separateSubfolders: preferencesStore.separatePhotoVideo,
+                imagesFolderName: FolderPrefix.imagesFolderName(for: langCode),
+                videosFolderName: FolderPrefix.videosFolderName(for: langCode),
+                namer: namer,
+                progress: { completed, total in
+                    print("[Organize] \(completed)/\(total)")
+                }
+            )
+            print("[Organize] Complete: \(organized) items organized")
+        }
+    }
+
     @objc private func openFolder(_ sender: NSMenuItem) {
-        NSWorkspace.shared.open(pipeline.screenshotFolder)
+        let langCode = L10n.activeLanguageCode
+        let rootName = PipelineController.resolveRootFolderName(preferencesStore: preferencesStore, languageCode: langCode)
+        let rootURL = pipeline.screenshotFolder.appendingPathComponent(rootName)
+        // Open root folder if it exists, otherwise fall back to screenshot folder
+        if FileManager.default.fileExists(atPath: rootURL.path) {
+            NSWorkspace.shared.open(rootURL)
+        } else {
+            NSWorkspace.shared.open(pipeline.screenshotFolder)
+        }
     }
 
     @objc private func openPreferences(_ sender: NSMenuItem) {

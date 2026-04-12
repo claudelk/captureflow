@@ -1,4 +1,5 @@
 import AppKit
+import CaptureFlowCore
 import UserNotifications
 
 @main
@@ -18,9 +19,6 @@ struct CaptureFlowApp {
         if !firstLaunchDone {
             defaults?.set(true, forKey: "firstLaunchDone")
 
-            // Explain what the app needs, then let the user pick a folder.
-            // This triggers the macOS folder access dialog in context
-            // (instead of a random popup later).
             let alert = NSAlert()
             alert.messageText = L10n.string("alert.welcomeTitle")
             alert.informativeText = L10n.string("alert.welcomeBody")
@@ -32,7 +30,6 @@ struct CaptureFlowApp {
             let response = alert.runModal()
 
             if response == .alertSecondButtonReturn {
-                // User wants to pick a folder
                 let panel = NSOpenPanel()
                 panel.canChooseDirectories = true
                 panel.canChooseFiles = false
@@ -49,23 +46,17 @@ struct CaptureFlowApp {
                     prefsStore.saveBookmark(for: url)
                     #endif
                 }
-                // If cancelled, fall through to default Desktop
             }
 
-            // For non-MAS: trigger Desktop access now by reading the folder,
-            // so the system dialog appears in context (not randomly later).
             let folder = prefsStore.screenshotFolder
             _ = try? FileManager.default.contentsOfDirectory(atPath: folder.path)
         }
 
+        // --- Permissions (first launch only) ---
         #if !MAS
-        // Accessibility (optional, one-time prompt)
-        if !AXIsProcessTrusted() {
-            let prompted = defaults?.bool(forKey: "accessibilityPromptShown") ?? false
-
-            if !prompted {
-                defaults?.set(true, forKey: "accessibilityPromptShown")
-
+        if !firstLaunchDone {
+            // 1. Accessibility — needed for keystroke detection and capture shortcuts
+            if !AXIsProcessTrusted() {
                 let alert = NSAlert()
                 alert.messageText = L10n.string("alert.accessibilityTitle")
                 alert.informativeText = L10n.string("alert.accessibilityBody")
@@ -80,14 +71,21 @@ struct CaptureFlowApp {
                     )
                 }
             }
+
         }
         #endif
 
+        // --- Start the app immediately ---
         let pipeline = PipelineController(preferencesStore: prefsStore)
         let statusBar = StatusBarController(pipeline: pipeline, preferencesStore: prefsStore)
 
         if prefsStore.isEnabled {
             pipeline.start()
+        }
+
+        // Pop open the menu so the user sees the app is ready
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            statusBar.showMenu()
         }
 
         // Notify user the app is running
@@ -106,6 +104,81 @@ struct CaptureFlowApp {
         }
 
         print("CaptureFlow ready.")
+
+        // --- Migration (runs in background, non-blocking) ---
+        if !prefsStore.migrationDone {
+            let langCode = L10n.activeLanguageCode
+            let rootFolderName = PipelineController.resolveRootFolderName(preferencesStore: prefsStore, languageCode: langCode)
+            let screenshotFolder = prefsStore.screenshotFolder
+            let scanResult = MigrationEngine.scan(in: screenshotFolder, rootFolderName: rootFolderName)
+
+            if !scanResult.isEmpty {
+                let alert = NSAlert()
+                alert.messageText = L10n.string("migration.title")
+                alert.informativeText = String(
+                    format: L10n.string("migration.body"),
+                    scanResult.fileCount, scanResult.folderCount
+                )
+                alert.alertStyle = .informational
+                alert.addButton(withTitle: L10n.string("migration.organize"))
+                alert.addButton(withTitle: L10n.string("migration.skip"))
+                alert.icon = NSImage(named: NSImage.applicationIconName)
+
+                if alert.runModal() == .alertFirstButtonReturn {
+                    let dateFormatter = PipelineController.resolveDateFormatter(preferencesStore: prefsStore)
+                    let namer = PipelineController.createNamer(tier: prefsStore.namerTier, languageCode: langCode)
+
+                    // Update menu bar icon to show migration in progress
+                    DispatchQueue.main.async {
+                        if let button = statusBar.statusButton {
+                            button.image = NSImage(
+                                systemSymbolName: "arrow.triangle.2.circlepath",
+                                accessibilityDescription: L10n.string("menu.accessibilityWorking")
+                            )
+                        }
+                    }
+
+                    // Run migration in background
+                    Task.detached {
+                        let organized = await MigrationEngine.run(
+                            scanResult: scanResult,
+                            screenshotFolder: screenshotFolder,
+                            rootFolderName: rootFolderName,
+                            dateFormatter: dateFormatter,
+                            separateSubfolders: prefsStore.separatePhotoVideo,
+                            imagesFolderName: FolderPrefix.imagesFolderName(for: langCode),
+                            videosFolderName: FolderPrefix.videosFolderName(for: langCode),
+                            namer: namer,
+                            progress: { completed, total in
+                                print("[Migration] \(completed)/\(total)")
+                            }
+                        )
+                        print("[Migration] Complete: \(organized) items organized")
+
+                        DispatchQueue.main.async {
+                            if let button = statusBar.statusButton {
+                                button.image = NSImage(
+                                    systemSymbolName: "camera.viewfinder",
+                                    accessibilityDescription: L10n.string("menu.accessibility")
+                                )
+                            }
+                        }
+
+                        let content = UNMutableNotificationContent()
+                        content.title = "CaptureFlow"
+                        content.body = String(format: L10n.string("migration.complete"), organized)
+                        let request = UNNotificationRequest(
+                            identifier: "migrationComplete",
+                            content: content,
+                            trigger: nil
+                        )
+                        try? await center.add(request)
+                    }
+                }
+            }
+
+            prefsStore.migrationDone = true
+        }
 
         withExtendedLifetime((statusBar, pipeline, prefsStore)) {
             app.run()

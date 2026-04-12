@@ -233,3 +233,6 @@ export APP_PASSWORD="xxxx-xxxx-xxxx-xxxx"
 
 - Browser URL capture (Safari / Chrome / Arc / Firefox via AppleScript)
 - Unit tests for `SlugGenerator` and `VisionOnlyNamer.buildSlug`
+- **App Store featuring nomination** — Apple lets you nominate your app to be featured: https://developer.apple.com/app-store/getting-featured/ — submit once the app has some reviews and a polished listing. Good candidates: apps using Apple Intelligence, on-device ML, privacy-focused utilities.
+- **Pricing strategy** — Launched at $2.99. Revisit after 20-30 reviews. Consider: raise to $4.99 once there's social proof, or go free on MAS and sell direct version via website (keep 95% vs Apple's 70%).
+- **Direct distribution monetization** — Sell full-featured (non-sandboxed) version via Gumroad/Paddle on atalaku.studio. MAS listing acts as discovery channel, direct version is the premium product with keystroke tap + global hotkey.

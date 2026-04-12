@@ -44,4 +44,61 @@ final class FolderPrefixTests: XCTestCase {
                           "Prefix for \(code) contains invalid characters: \(prefix)")
         }
     }
+
+    // MARK: - Root Folder Names
+
+    func testEnglishRootFolderName() {
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: "en"), "Screenshots")
+    }
+
+    func testFrenchRootFolderName() {
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: "fr"), "Captures d\u{2019}\u{00E9}cran")
+    }
+
+    func testSpanishRootFolderName() {
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: "es"), "Capturas de pantalla")
+    }
+
+    func testPortugueseRootFolderName() {
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: "pt"), "Capturas de tela")
+    }
+
+    func testSwahiliRootFolderName() {
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: "sw"), "Picha za skrini")
+    }
+
+    func testUnknownLanguageRootFolderFallsBack() {
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: "de"), "Screenshots")
+        XCTAssertEqual(FolderPrefix.rootFolderName(for: ""), "Screenshots")
+    }
+
+    func testRootFolderNamesAreNonEmpty() {
+        let codes = ["en", "fr", "es", "pt", "sw"]
+        for code in codes {
+            let name = FolderPrefix.rootFolderName(for: code)
+            XCTAssertFalse(name.isEmpty, "Root folder name for \(code) should not be empty")
+        }
+    }
+
+    // MARK: - Subfolder Names
+
+    func testEnglishSubfolderNames() {
+        XCTAssertEqual(FolderPrefix.imagesFolderName(for: "en"), "images")
+        XCTAssertEqual(FolderPrefix.videosFolderName(for: "en"), "videos")
+    }
+
+    func testFrenchSubfolderNames() {
+        XCTAssertEqual(FolderPrefix.imagesFolderName(for: "fr"), "images")
+        XCTAssertEqual(FolderPrefix.videosFolderName(for: "fr"), "vid\u{00E9}os")
+    }
+
+    func testSpanishSubfolderNames() {
+        XCTAssertEqual(FolderPrefix.imagesFolderName(for: "es"), "im\u{00E1}genes")
+        XCTAssertEqual(FolderPrefix.videosFolderName(for: "es"), "v\u{00ED}deos")
+    }
+
+    func testUnknownLanguageSubfolderFallsBack() {
+        XCTAssertEqual(FolderPrefix.imagesFolderName(for: "de"), "images")
+        XCTAssertEqual(FolderPrefix.videosFolderName(for: "de"), "videos")
+    }
 }

@@ -88,7 +88,42 @@ struct CaptureFlowCLI {
     private static func runRename(paths: [String]) async {
         let namer = VisionOnlyNamer()
         let store = CaptureContextStore()
-        let engine = RenameEngine(namer: namer, store: store)
+        // Read preferences directly from UserDefaults for consistent behavior with the app
+        let defaults = UserDefaults(suiteName: "com.captureflow.preferences")
+        let langCode: String = {
+            let stored = defaults?.string(forKey: "appLanguage") ?? "system"
+            if stored != "system" { return stored }
+            return Locale.preferredLanguages.first
+                .flatMap { Locale(identifier: $0).language.languageCode?.identifier } ?? "en"
+        }()
+        let useCustomRoot = defaults?.bool(forKey: "useCustomRootFolder") ?? false
+        let customRootName = defaults?.string(forKey: "customRootFolderName") ?? ""
+        let rootFolder = (useCustomRoot && !customRootName.isEmpty)
+            ? customRootName
+            : FolderPrefix.rootFolderName(for: langCode)
+        let separatePhotoVideo = defaults?.object(forKey: "separatePhotoVideo") != nil
+            ? (defaults?.bool(forKey: "separatePhotoVideo") ?? true)
+            : true
+        let dateFormatter: DateFormatter = {
+            let df = DateFormatter()
+            let useCustom = defaults?.bool(forKey: "useCustomDateFormat") ?? false
+            let customFormat = defaults?.string(forKey: "customDateFormat") ?? ""
+            if useCustom && !customFormat.isEmpty {
+                df.dateFormat = customFormat
+            } else {
+                df.dateStyle = .short
+                df.timeStyle = .none
+            }
+            return df
+        }()
+        let engine = RenameEngine(
+            namer: namer, store: store,
+            rootFolderName: rootFolder,
+            separateSubfolders: separatePhotoVideo,
+            imagesFolderName: FolderPrefix.imagesFolderName(for: langCode),
+            videosFolderName: FolderPrefix.videosFolderName(for: langCode),
+            dateFormatter: dateFormatter
+        )
 
         var succeeded = 0
         var failed = 0

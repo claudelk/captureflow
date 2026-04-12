@@ -16,7 +16,11 @@ public actor RenameEngine {
     private let store: CaptureContextStore
     private let groupByApp: Bool
     private let folderPrefix: String
+    private let rootFolderName: String
     private let separateSubfolders: Bool
+    private let imagesFolderName: String
+    private let videosFolderName: String
+    private let dateFormatter: DateFormatter
     private let photoFormat: PhotoFormat
     private let videoFormat: VideoFormat
     private var recentlyProcessed: [String: Date] = [:]
@@ -26,7 +30,11 @@ public actor RenameEngine {
         store: CaptureContextStore,
         groupByApp: Bool = false,
         folderPrefix: String = "screenshot",
+        rootFolderName: String = "",
         separateSubfolders: Bool = false,
+        imagesFolderName: String = "images",
+        videosFolderName: String = "videos",
+        dateFormatter: DateFormatter? = nil,
         photoFormat: PhotoFormat = .png,
         videoFormat: VideoFormat = .mov
     ) {
@@ -34,7 +42,17 @@ public actor RenameEngine {
         self.store = store
         self.groupByApp = groupByApp
         self.folderPrefix = folderPrefix
+        self.rootFolderName = rootFolderName
         self.separateSubfolders = separateSubfolders
+        self.imagesFolderName = imagesFolderName
+        self.videosFolderName = videosFolderName
+        if let df = dateFormatter {
+            self.dateFormatter = df
+        } else {
+            let df = DateFormatter()
+            df.dateFormat = "yyyy-MM-dd"
+            self.dateFormatter = df
+        }
         self.photoFormat = photoFormat
         self.videoFormat = videoFormat
     }
@@ -88,17 +106,26 @@ public actor RenameEngine {
         let fileDate = context.appName.isEmpty ? creationDate(of: url) : context.capturedAt
 
         // Build destination path
-        let appSlug = (groupByApp && !context.appName.isEmpty)
-            ? SlugGenerator.slug(from: context.appName)
-            : folderPrefix
-        let folderName = "\(appSlug)_\(dateString(from: fileDate))"
+        let datePart = sanitizedDateString(from: fileDate)
+        let folderName: String
+        if groupByApp && !context.appName.isEmpty {
+            folderName = "\(SlugGenerator.slug(from: context.appName))_\(datePart)"
+        } else if !rootFolderName.isEmpty {
+            folderName = datePart
+        } else {
+            folderName = "\(folderPrefix)_\(datePart)"
+        }
         let baseName = "\(contentSlug)_\(timeString(from: fileDate))"
         let ext = fileExtension(for: mediaType)
 
-        let baseDir = url.deletingLastPathComponent()
+        let screenshotDir = url.deletingLastPathComponent()
+        let baseDir = rootFolderName.isEmpty
+            ? screenshotDir
+            : screenshotDir.appendingPathComponent(rootFolderName)
         var destFolder = baseDir.appendingPathComponent(folderName)
+        let subfolderName = mediaType == .photo ? imagesFolderName : videosFolderName
         if separateSubfolders {
-            destFolder = destFolder.appendingPathComponent(mediaType == .photo ? "photos" : "videos")
+            destFolder = destFolder.appendingPathComponent(subfolderName)
         }
 
         var destFile = destFolder.appendingPathComponent("\(baseName).\(ext)")
@@ -113,10 +140,11 @@ public actor RenameEngine {
             try FileManager.default.createDirectory(at: destFolder, withIntermediateDirectories: true)
             try FileManager.default.moveItem(at: url, to: destFile)
             let subPath = separateSubfolders
-                ? "\(folderName)/\(mediaType == .photo ? "photos" : "videos")/\(destFile.lastPathComponent)"
+                ? "\(folderName)/\(subfolderName)/\(destFile.lastPathComponent)"
                 : "\(folderName)/\(destFile.lastPathComponent)"
+            let prefix = rootFolderName.isEmpty ? "" : "\(rootFolderName)/"
             print("[RenameEngine] \(url.lastPathComponent)")
-            print("           → \(subPath)")
+            print("           → \(prefix)\(subPath)")
         } catch {
             print("[RenameEngine] move failed — \(error.localizedDescription)")
             return nil
@@ -156,14 +184,21 @@ public actor RenameEngine {
         }
 
         let fileDate = creationDate(of: url)
-        let folderName = "\(folderPrefix)_\(dateString(from: fileDate))"
+        let datePart = sanitizedDateString(from: fileDate)
+        let folderName = rootFolderName.isEmpty
+            ? "\(folderPrefix)_\(datePart)"
+            : datePart
         let baseName = "\(contentSlug)_\(timeString(from: fileDate))"
         let ext = fileExtension(for: mediaType)
 
-        let baseDir = url.deletingLastPathComponent()
+        let screenshotDir = url.deletingLastPathComponent()
+        let baseDir = rootFolderName.isEmpty
+            ? screenshotDir
+            : screenshotDir.appendingPathComponent(rootFolderName)
         var destFolder = baseDir.appendingPathComponent(folderName)
+        let subfolderName = mediaType == .photo ? imagesFolderName : videosFolderName
         if separateSubfolders {
-            destFolder = destFolder.appendingPathComponent(mediaType == .photo ? "photos" : "videos")
+            destFolder = destFolder.appendingPathComponent(subfolderName)
         }
 
         var destFile = destFolder.appendingPathComponent("\(baseName).\(ext)")
@@ -176,8 +211,9 @@ public actor RenameEngine {
         do {
             try FileManager.default.createDirectory(at: destFolder, withIntermediateDirectories: true)
             try FileManager.default.moveItem(at: url, to: destFile)
+            let prefix = rootFolderName.isEmpty ? "" : "\(rootFolderName)/"
             print("[RenameEngine] \(url.lastPathComponent)")
-            print("           → \(folderName)/\(destFile.lastPathComponent)")
+            print("           → \(prefix)\(folderName)/\(destFile.lastPathComponent)")
         } catch {
             print("[RenameEngine] move failed — \(error.localizedDescription)")
             return nil
@@ -274,9 +310,11 @@ public actor RenameEngine {
         (try? url.resourceValues(forKeys: [.creationDateKey]).creationDate) ?? Date()
     }
 
-    private func dateString(from date: Date) -> String {
-        let c = Calendar.current.dateComponents([.year, .month, .day], from: date)
-        return String(format: "%04d-%02d-%02d", c.year!, c.month!, c.day!)
+    private func sanitizedDateString(from date: Date) -> String {
+        let raw = dateFormatter.string(from: date)
+        // Replace filesystem-unsafe characters (/ and :) with hyphens
+        return raw.replacingOccurrences(of: "/", with: "-")
+                  .replacingOccurrences(of: ":", with: "-")
     }
 
     private func timeString(from date: Date) -> String {

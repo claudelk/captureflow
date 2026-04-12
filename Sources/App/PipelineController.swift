@@ -41,12 +41,18 @@ final class PipelineController {
         let langCode = L10n.activeLanguageCode
         let namer = createNamer(tier: preferencesStore.namerTier, languageCode: langCode)
         let prefix = resolvePrefix(preferencesStore: preferencesStore, languageCode: langCode)
+        let rootFolder = resolveRootFolderName(preferencesStore: preferencesStore, languageCode: langCode)
+        let dateFormatter = resolveDateFormatter(preferencesStore: preferencesStore)
         return RenameEngine(
             namer: namer,
             store: store,
             groupByApp: preferencesStore.groupByApp,
             folderPrefix: prefix,
+            rootFolderName: rootFolder,
             separateSubfolders: preferencesStore.separatePhotoVideo,
+            imagesFolderName: FolderPrefix.imagesFolderName(for: langCode),
+            videosFolderName: FolderPrefix.videosFolderName(for: langCode),
+            dateFormatter: dateFormatter,
             photoFormat: PhotoFormat(rawValue: preferencesStore.photoFormat) ?? .png,
             videoFormat: VideoFormat(rawValue: preferencesStore.videoFormat) ?? .mov
         )
@@ -69,6 +75,26 @@ final class PipelineController {
             return SlugGenerator.slug(from: preferencesStore.customFolderPrefix)
         }
         return FolderPrefix.prefix(for: languageCode)
+    }
+
+    /// Resolves the root folder name from user preference or localized default.
+    static func resolveRootFolderName(preferencesStore: PreferencesStore, languageCode: String) -> String {
+        if preferencesStore.useCustomRootFolder, !preferencesStore.customRootFolderName.isEmpty {
+            return preferencesStore.customRootFolderName
+        }
+        return FolderPrefix.rootFolderName(for: languageCode)
+    }
+
+    /// Resolves the date formatter from user preference or system locale.
+    static func resolveDateFormatter(preferencesStore: PreferencesStore) -> DateFormatter {
+        let formatter = DateFormatter()
+        if preferencesStore.useCustomDateFormat, !preferencesStore.customDateFormat.isEmpty {
+            formatter.dateFormat = preferencesStore.customDateFormat
+        } else {
+            formatter.dateStyle = .short
+            formatter.timeStyle = .none
+        }
+        return formatter
     }
 
     // MARK: - Lifecycle

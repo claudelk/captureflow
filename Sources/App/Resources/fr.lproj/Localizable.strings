@@ -1,11 +1,13 @@
 /* StatusBarController — Menu */
-"menu.captureFullScreen" = "Capturer l'écran entier";
-"menu.captureArea" = "Capturer une zone";
-"menu.recordScreen" = "Enregistrer l'écran";
+"menu.howToCapture" = "Comment capturer";
+"menu.hintFullScreen" = "Plein écran";
+"menu.hintArea" = "Zone sélectionnée";
+"menu.hintToolbar" = "Barre d'outils de capture";
 "menu.reanalyze" = "Ré-analyser la dernière capture";
 "menu.batchRename" = "Renommer les captures par lot…";
 "menu.openFolder" = "Ouvrir le dossier des captures";
 "menu.preferences" = "Préférences…";
+"menu.organize" = "Organiser les captures existantes\U2026";
 "menu.quit" = "Quitter CaptureFlow";
 "menu.accessibility" = "CaptureFlow";
 "menu.accessibilityWorking" = "CaptureFlow — en cours";
@@ -31,9 +33,12 @@
 "prefs.select" = "Sélectionner";
 "prefs.chooseMessage" = "Choisissez où les captures seront enregistrées et organisées";
 "prefs.language" = "Langue :";
-"prefs.folderPrefix" = "Préfixe du dossier :";
-"prefs.folderPrefixDefault" = "Par défaut";
-"prefs.folderPrefixCustom" = "Personnalisé :";
+"prefs.rootFolder" = "Dossier racine :";
+"prefs.rootFolderDefault" = "Par d\U00E9faut";
+"prefs.rootFolderCustom" = "Personnalis\U00E9 :";
+"prefs.dateFormat" = "Format de date :";
+"prefs.dateFormatDefault" = "Par d\U00E9faut du syst\U00E8me";
+"prefs.dateFormatCustom" = "Personnalis\U00E9 :";
 "prefs.separatePhotoVideo" = "Séparer photos et vidéos dans des sous-dossiers";
 "prefs.photoFormat" = "Format photo :";
 "prefs.videoFormat" = "Format vidéo :";
@@ -43,6 +48,9 @@
 "prefs.formatMP4" = "MP4 (compatible)";
 "prefs.tooltipJPEG" = "Les fichiers JPEG sont plus petits mais utilisent une compression avec perte";
 "prefs.tooltipMP4" = "MP4 est plus compatible mais la conversion prend quelques secondes";
+"prefs.permissions" = "Permissions :";
+"prefs.grantAccessibility" = "Accessibilit\U00E9 (contexte d'app)";
+"prefs.grantScreenRecording" = "Enregistrement d'\U00E9cran (captures)";
 "prefs.support" = "Support :";
 "prefs.copyEmail" = "Copier l'email";
 "prefs.sendEmail" = "Envoyer un email";
@@ -65,6 +73,15 @@
 
 /* AppEntry — First Launch (MAS) */
 "alert.selectFolder" = "CaptureFlow a besoin d'accéder à votre dossier de captures.\nSélectionnez le dossier où macOS enregistre les captures (généralement le Bureau).";
+
+/* Migration */
+"migration.title" = "Organiser les captures existantes ?";
+"migration.body" = "%d captures et %d dossiers trouv\U00E9s pouvant \U00EAtre organis\U00E9s dans votre dossier Captures d\U2019\U00E9cran.";
+"migration.organize" = "Organiser";
+"migration.skip" = "Ignorer";
+"migration.progress" = "Organisation de la capture %d sur %d\U2026";
+"migration.nothingFound" = "Aucune capture non organis\U00E9e trouv\U00E9e dans votre dossier de captures.";
+"migration.complete" = "Migration termin\U00E9e. %d fichiers organis\U00E9s.";
 
 /* Language Change */
 "alert.restartTitle" = "Redémarrage requis";

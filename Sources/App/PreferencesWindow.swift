@@ -34,9 +34,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         }
 
         #if MAS
-        let windowHeight: CGFloat = 630
+        let windowHeight: CGFloat = 720
         #else
-        let windowHeight: CGFloat = 710
+        let windowHeight: CGFloat = 845
         #endif
 
         let w = NSWindow(
@@ -54,9 +54,9 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         content.autoresizingMask = [.width, .height]
 
         #if MAS
-        var y: CGFloat = 585
+        var y: CGFloat = 675
         #else
-        var y: CGFloat = 665
+        var y: CGFloat = 800
         #endif
 
         // --- Screenshot Folder ---
@@ -67,12 +67,14 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         folderPath.font = .systemFont(ofSize: 11)
         folderPath.textColor = .secondaryLabelColor
         folderPath.lineBreakMode = .byTruncatingMiddle
+        folderPath.setAccessibilityLabel(L10n.string("prefs.saveScreenshotsTo"))
         self.folderLabel = folderPath
         content.addSubview(folderPath)
 
         let chooseButton = NSButton(title: L10n.string("prefs.choose"), target: self, action: #selector(chooseFolder(_:)))
         chooseButton.bezelStyle = .rounded
         chooseButton.frame = NSRect(x: 365, y: y - 4, width: 75, height: 28)
+        chooseButton.setAccessibilityLabel(L10n.string("prefs.choose"))
         content.addSubview(chooseButton)
 
         let resetButton = NSButton(title: L10n.string("prefs.reset"), target: self, action: #selector(resetFolder(_:)))
@@ -81,6 +83,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         resetButton.font = .systemFont(ofSize: 11)
         resetButton.isHidden = preferencesStore.screenshotFolderOverride == nil
         resetButton.tag = 200
+        resetButton.setAccessibilityLabel(L10n.string("prefs.reset"))
         content.addSubview(resetButton)
 
         y -= 65
@@ -92,6 +95,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         tierPopup.addItems(withTitles: [L10n.string("prefs.standard")])
         tierPopup.target = self
         tierPopup.action = #selector(namerTierChanged(_:))
+        tierPopup.setAccessibilityLabel(L10n.string("prefs.namingMode"))
 
         let tier2Available = Self.isFoundationModelsAvailable()
         let tier2Title = tier2Available
@@ -103,6 +107,10 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
 
         let tier3 = NSMenuItem(title: L10n.string("prefs.advanced"), action: nil, keyEquivalent: "")
         tier3.isEnabled = false
+        tier3.attributedTitle = NSAttributedString(
+            string: L10n.string("prefs.advanced"),
+            attributes: [.foregroundColor: NSColor.tertiaryLabelColor]
+        )
         tierPopup.menu?.addItem(tier3)
 
         let currentTier = preferencesStore.namerTier
@@ -148,6 +156,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         photoPopup.action = #selector(photoFormatChanged(_:))
         photoPopup.selectItem(at: preferencesStore.photoFormat == "jpeg" ? 1 : 0)
         photoPopup.toolTip = L10n.string("prefs.tooltipJPEG")
+        photoPopup.setAccessibilityLabel(L10n.string("prefs.photoFormat"))
         content.addSubview(photoPopup)
 
         y -= 32
@@ -161,6 +170,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         videoPopup.action = #selector(videoFormatChanged(_:))
         videoPopup.selectItem(at: preferencesStore.videoFormat == "mp4" ? 1 : 0)
         videoPopup.toolTip = L10n.string("prefs.tooltipMP4")
+        videoPopup.setAccessibilityLabel(L10n.string("prefs.videoFormat"))
         content.addSubview(videoPopup)
 
         y -= 40
@@ -214,44 +224,102 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
 
         y -= 45
 
-        // --- Folder Prefix ---
-        content.addSubview(makeLabel(L10n.string("prefs.folderPrefix"), at: y))
+        // --- Root Folder ---
+        content.addSubview(makeLabel(L10n.string("prefs.rootFolder"), at: y))
 
         let langCode = L10n.activeLanguageCode
-        let defaultPrefix = FolderPrefix.prefix(for: langCode)
+        let defaultRootName = FolderPrefix.rootFolderName(for: langCode)
 
-        let defaultRadio = NSButton(radioButtonWithTitle: "\(L10n.string("prefs.folderPrefixDefault")) (\(defaultPrefix)_YYYY-MM-DD)",
-                                     target: self, action: #selector(folderPrefixChanged(_:)))
-        defaultRadio.frame.origin = NSPoint(x: 160, y: y)
-        defaultRadio.tag = 400
-        defaultRadio.state = preferencesStore.useCustomFolderPrefix ? .off : .on
-        content.addSubview(defaultRadio)
+        let rootDefaultRadio = NSButton(radioButtonWithTitle: "\(L10n.string("prefs.rootFolderDefault")) (\(defaultRootName))",
+                                         target: self, action: #selector(rootFolderChanged(_:)))
+        rootDefaultRadio.frame.origin = NSPoint(x: 160, y: y)
+        rootDefaultRadio.tag = 400
+        rootDefaultRadio.state = preferencesStore.useCustomRootFolder ? .off : .on
+        content.addSubview(rootDefaultRadio)
 
         y -= 25
 
-        let customRadio = NSButton(radioButtonWithTitle: L10n.string("prefs.folderPrefixCustom"),
-                                    target: self, action: #selector(folderPrefixChanged(_:)))
-        customRadio.frame.origin = NSPoint(x: 160, y: y)
-        customRadio.tag = 401
-        customRadio.state = preferencesStore.useCustomFolderPrefix ? .on : .off
-        content.addSubview(customRadio)
+        let rootCustomRadio = NSButton(radioButtonWithTitle: L10n.string("prefs.rootFolderCustom"),
+                                        target: self, action: #selector(rootFolderChanged(_:)))
+        rootCustomRadio.frame.origin = NSPoint(x: 160, y: y)
+        rootCustomRadio.tag = 401
+        rootCustomRadio.state = preferencesStore.useCustomRootFolder ? .on : .off
+        content.addSubview(rootCustomRadio)
 
-        let prefixField = NSTextField(frame: NSRect(x: 260, y: y - 2, width: 100, height: 22))
-        prefixField.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
-        prefixField.stringValue = preferencesStore.customFolderPrefix
-        prefixField.placeholderString = "my-prefix"
-        prefixField.isEnabled = preferencesStore.useCustomFolderPrefix
-        prefixField.delegate = self
-        prefixField.tag = 402
-        self.customPrefixField = prefixField
-        content.addSubview(prefixField)
+        let rootField = NSTextField(frame: NSRect(x: 280, y: y - 2, width: 120, height: 22))
+        rootField.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        rootField.stringValue = preferencesStore.customRootFolderName
+        rootField.placeholderString = defaultRootName
+        rootField.isEnabled = preferencesStore.useCustomRootFolder
+        rootField.delegate = self
+        rootField.tag = 402
+        rootField.setAccessibilityLabel(L10n.string("prefs.rootFolderCustom"))
+        self.customPrefixField = rootField
+        content.addSubview(rootField)
 
-        let suffixLabel = makeLabel("_YYYY-MM-DD", at: y, size: 11, color: .secondaryLabelColor)
-        suffixLabel.frame.origin.x = 365
-        suffixLabel.frame.size.width = 90
-        content.addSubview(suffixLabel)
+        y -= 35
 
-        y -= 40
+        // --- Date Format ---
+        content.addSubview(makeLabel(L10n.string("prefs.dateFormat"), at: y))
+
+        let sampleFormatter = DateFormatter()
+        sampleFormatter.dateStyle = .short
+        sampleFormatter.timeStyle = .none
+        let sampleDate = sampleFormatter.string(from: Date())
+
+        let dateDefaultRadio = NSButton(radioButtonWithTitle: "\(L10n.string("prefs.dateFormatDefault")) (\(sampleDate))",
+                                         target: self, action: #selector(dateFormatChanged(_:)))
+        dateDefaultRadio.frame.origin = NSPoint(x: 160, y: y)
+        dateDefaultRadio.tag = 410
+        dateDefaultRadio.state = preferencesStore.useCustomDateFormat ? .off : .on
+        content.addSubview(dateDefaultRadio)
+
+        y -= 25
+
+        let dateCustomRadio = NSButton(radioButtonWithTitle: L10n.string("prefs.dateFormatCustom"),
+                                        target: self, action: #selector(dateFormatChanged(_:)))
+        dateCustomRadio.frame.origin = NSPoint(x: 160, y: y)
+        dateCustomRadio.tag = 411
+        dateCustomRadio.state = preferencesStore.useCustomDateFormat ? .on : .off
+        content.addSubview(dateCustomRadio)
+
+        let dateField = NSTextField(frame: NSRect(x: 280, y: y - 2, width: 120, height: 22))
+        dateField.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+        dateField.stringValue = preferencesStore.customDateFormat
+        dateField.placeholderString = "yyyy-MM-dd"
+        dateField.isEnabled = preferencesStore.useCustomDateFormat
+        dateField.delegate = self
+        dateField.tag = 412
+        dateField.setAccessibilityLabel(L10n.string("prefs.dateFormatCustom"))
+        content.addSubview(dateField)
+
+        y -= 35
+
+        // --- Preview ---
+        let previewFormatter: DateFormatter = {
+            let df = DateFormatter()
+            if preferencesStore.useCustomDateFormat, !preferencesStore.customDateFormat.isEmpty {
+                df.dateFormat = preferencesStore.customDateFormat
+            } else {
+                df.dateStyle = .short
+                df.timeStyle = .none
+            }
+            return df
+        }()
+        let previewDate = previewFormatter.string(from: Date())
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+        let rootName = preferencesStore.useCustomRootFolder && !preferencesStore.customRootFolderName.isEmpty
+            ? preferencesStore.customRootFolderName
+            : defaultRootName
+        let imagesName = FolderPrefix.imagesFolderName(for: langCode)
+        let previewText = "\(rootName) / \(previewDate) / \(imagesName) /"
+        let previewLabel = makeLabel(previewText, at: y, size: 11, color: .secondaryLabelColor)
+        previewLabel.frame = NSRect(x: 20, y: y, width: 420, height: 16)
+        previewLabel.tag = 420
+        content.addSubview(previewLabel)
+
+        y -= 30
 
         // --- Language ---
         content.addSubview(makeLabel(L10n.string("prefs.language"), at: y))
@@ -263,6 +331,7 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         langPopup.addItems(withTitles: languageNames)
         langPopup.target = self
         langPopup.action = #selector(languageChanged(_:))
+        langPopup.setAccessibilityLabel(L10n.string("prefs.language"))
 
         let currentLang = preferencesStore.appLanguage
         if let idx = languageCodes.firstIndex(of: currentLang) {
@@ -271,6 +340,24 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
             langPopup.selectItem(at: 0)
         }
         content.addSubview(langPopup)
+
+        #if !MAS
+        y -= 40
+
+        // --- Permissions ---
+        content.addSubview(makeLabel(L10n.string("prefs.permissions"), at: y))
+
+        let accessStatus = AXIsProcessTrusted() ? "\u{2705}" : "\u{274C}"
+        let accessButton = NSButton(
+            title: "\(accessStatus) \(L10n.string("prefs.grantAccessibility"))",
+            target: self, action: #selector(openAccessibilitySettings(_:))
+        )
+        accessButton.bezelStyle = .rounded
+        accessButton.frame = NSRect(x: 160, y: y - 4, width: 260, height: 28)
+        accessButton.setAccessibilityLabel(L10n.string("prefs.grantAccessibility"))
+        content.addSubview(accessButton)
+
+        #endif
 
         // --- Support & Feedback ---
         // Separator line
@@ -314,6 +401,31 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         versionLabel.alignment = .center
         versionLabel.frame = NSRect(x: 0, y: 10, width: 460, height: 16)
         content.addSubview(versionLabel)
+
+        // --- Keyboard navigation (Tab order) ---
+        w.initialFirstResponder = chooseButton
+        chooseButton.nextKeyView = tierPopup
+        tierPopup.nextKeyView = groupByAppCheckbox
+        groupByAppCheckbox.nextKeyView = separateCheckbox
+        separateCheckbox.nextKeyView = photoPopup
+        photoPopup.nextKeyView = videoPopup
+        videoPopup.nextKeyView = launchCheckbox
+        #if !MAS
+        launchCheckbox.nextKeyView = browserCheckbox
+        browserCheckbox.nextKeyView = hotkeyCheckbox
+        hotkeyCheckbox.nextKeyView = rootDefaultRadio
+        #else
+        launchCheckbox.nextKeyView = rootDefaultRadio
+        #endif
+        rootDefaultRadio.nextKeyView = rootCustomRadio
+        rootCustomRadio.nextKeyView = rootField
+        rootField.nextKeyView = dateDefaultRadio
+        dateDefaultRadio.nextKeyView = dateCustomRadio
+        dateCustomRadio.nextKeyView = dateField
+        dateField.nextKeyView = langPopup
+        langPopup.nextKeyView = copyButton
+        copyButton.nextKeyView = sendButton
+        sendButton.nextKeyView = chooseButton
 
         w.contentView = content
         w.makeKeyAndOrderFront(nil)
@@ -406,9 +518,18 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         }
     }
 
-    @objc private func folderPrefixChanged(_ sender: NSButton) {
+    #if !MAS
+    @objc private func openAccessibilitySettings(_ sender: NSButton) {
+        NSWorkspace.shared.open(
+            URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        )
+    }
+
+    #endif
+
+    @objc private func rootFolderChanged(_ sender: NSButton) {
         let useCustom = sender.tag == 401
-        preferencesStore.useCustomFolderPrefix = useCustom
+        preferencesStore.useCustomRootFolder = useCustom
         customPrefixField?.isEnabled = useCustom
 
         if let defaultRadio = window?.contentView?.viewWithTag(400) as? NSButton {
@@ -421,10 +542,35 @@ final class PreferencesWindow: NSObject, NSWindowDelegate, NSTextFieldDelegate {
         onFolderChanged?()
     }
 
+    @objc private func dateFormatChanged(_ sender: NSButton) {
+        let useCustom = sender.tag == 411
+        preferencesStore.useCustomDateFormat = useCustom
+
+        if let dateField = window?.contentView?.viewWithTag(412) as? NSTextField {
+            dateField.isEnabled = useCustom
+        }
+        if let defaultRadio = window?.contentView?.viewWithTag(410) as? NSButton {
+            defaultRadio.state = useCustom ? .off : .on
+        }
+        if let customRadio = window?.contentView?.viewWithTag(411) as? NSButton {
+            customRadio.state = useCustom ? .on : .off
+        }
+
+        onFolderChanged?()
+    }
+
     func controlTextDidChange(_ notification: Notification) {
-        guard let field = notification.object as? NSTextField, field.tag == 402 else { return }
-        preferencesStore.customFolderPrefix = field.stringValue
-        onFolderChanged?()  // Restart pipeline to use new prefix
+        guard let field = notification.object as? NSTextField else { return }
+        switch field.tag {
+        case 402:
+            preferencesStore.customRootFolderName = field.stringValue
+            onFolderChanged?()
+        case 412:
+            preferencesStore.customDateFormat = field.stringValue
+            onFolderChanged?()
+        default:
+            break
+        }
     }
 
     @objc private func launchAtLoginToggled(_ sender: NSButton) {

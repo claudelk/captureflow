@@ -15,11 +15,12 @@ final class PreferencesStore {
         defaults.register(defaults: [
             Keys.isEnabled: true,
             Keys.namerTier: "auto",
-            Keys.launchAtLogin: false,
+            Keys.launchAtLogin: true,
             Keys.browserCaptureEnabled: false,
             Keys.hotkeyEnabled: false,
             Keys.hotkeyKeyCode: 1,         // "s" key
             Keys.hotkeyModifiers: "control,option",
+            Keys.separatePhotoVideo: true,
         ])
     }
 
@@ -42,6 +43,11 @@ final class PreferencesStore {
         static let separatePhotoVideo = "separatePhotoVideo"
         static let photoFormat = "photoFormat"
         static let videoFormat = "videoFormat"
+        static let useCustomRootFolder = "useCustomRootFolder"
+        static let customRootFolderName = "customRootFolderName"
+        static let useCustomDateFormat = "useCustomDateFormat"
+        static let customDateFormat = "customDateFormat"
+        static let migrationDone = "migrationDone"
     }
 
     // MARK: - Properties
@@ -103,6 +109,33 @@ final class PreferencesStore {
     var videoFormat: String {
         get { defaults.string(forKey: Keys.videoFormat) ?? "mov" }
         set { defaults.set(newValue, forKey: Keys.videoFormat) }
+    }
+
+    // MARK: - Root Folder & Date Format
+
+    var useCustomRootFolder: Bool {
+        get { defaults.bool(forKey: Keys.useCustomRootFolder) }
+        set { defaults.set(newValue, forKey: Keys.useCustomRootFolder) }
+    }
+
+    var customRootFolderName: String {
+        get { defaults.string(forKey: Keys.customRootFolderName) ?? "" }
+        set { defaults.set(newValue, forKey: Keys.customRootFolderName) }
+    }
+
+    var useCustomDateFormat: Bool {
+        get { defaults.bool(forKey: Keys.useCustomDateFormat) }
+        set { defaults.set(newValue, forKey: Keys.useCustomDateFormat) }
+    }
+
+    var customDateFormat: String {
+        get { defaults.string(forKey: Keys.customDateFormat) ?? "" }
+        set { defaults.set(newValue, forKey: Keys.customDateFormat) }
+    }
+
+    var migrationDone: Bool {
+        get { defaults.bool(forKey: Keys.migrationDone) }
+        set { defaults.set(newValue, forKey: Keys.migrationDone) }
     }
 
     // MARK: - Hotkey
